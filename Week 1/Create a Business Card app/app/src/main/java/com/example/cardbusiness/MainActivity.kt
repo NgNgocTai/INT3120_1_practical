@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,11 +34,11 @@ class MainActivity : ComponentActivity() {
             CardBusinessTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     BusinessCard(
-                        name = "Jennifer Doe",
-                        des = "Android Developer Extraordinaire",
-                        phone = "+84 123 456 789",
-                        share = "@ngoctaidev",
-                        mail = "tai@example.com",
+                        name = stringResource(R.string.name),
+                        des = stringResource(R.string.des),
+                        phone = stringResource(R.string.phone),
+                        share = stringResource(R.string.share),
+                        mail = stringResource(R.string.mail),
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

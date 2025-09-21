@@ -31,7 +31,7 @@ class TipUITests {
 
         composeTestRule.onNodeWithText("Bill Amount")
             .performTextInput("10")
-        composeTestRule.onNodeWithText("How was the service?")
+        composeTestRule.onNodeWithText("Tip Percentage")
             .performTextInput("20")
 
         val expectedTip = NumberFormat.getCurrencyInstance().format(2)

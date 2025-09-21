@@ -1,4 +1,4 @@
-package com.example.tiptime
+package com.example.tipcaculator
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

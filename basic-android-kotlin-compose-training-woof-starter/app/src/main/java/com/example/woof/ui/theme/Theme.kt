@@ -16,7 +16,19 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.example.woof.R
+import androidx.compose.ui.text.font.FontWeight
 
+val AbrilFatface = FontFamily(
+    Font(R.font.abril_fatface_regular)
+)
+
+val Montserrat = FontFamily(
+    Font(R.font.montserrat_regular),
+    Font(R.font.montserrat_bold, FontWeight.Bold)
+)
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,

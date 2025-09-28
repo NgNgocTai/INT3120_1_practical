@@ -22,6 +22,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,11 +53,15 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 fun WoofApp() {
-    Scaffold { it ->
-        LazyColumn(contentPadding = it) {
-            items(dogs) {
+    Scaffold(
+        topBar = {
+            WoofTopAppBar()
+        }
+    ) { innerPadding ->
+        LazyColumn(contentPadding = innerPadding) {
+            items(dogs) { dog ->
                 DogItem(
-                    dog = it,
+                    dog = dog,
                     modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
                 )
             }
@@ -63,6 +69,11 @@ fun WoofApp() {
     }
 }
 
+@Composable
+fun WoofTopAppBar(modifier: Modifier = Modifier) {
+
+
+}
 /**
  * Composable that displays a list item containing a dog icon and their information.
  *
@@ -105,9 +116,10 @@ fun DogIcon(
     Image(
         modifier = modifier
             .size(dimensionResource(R.dimen.image_size))
-            .padding(dimensionResource(R.dimen.padding_small)),
+            .padding(dimensionResource(R.dimen.padding_small))
+            .clip(MaterialTheme.shapes.small),
         painter = painterResource(dogIcon),
-
+        contentScale = ContentScale.Crop,
         contentDescription = null
     )
 }
@@ -128,10 +140,14 @@ fun DogInformation(
     Column(modifier = modifier) {
         Text(
             text = stringResource(dogName),
-            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small))
-        )
+            modifier = Modifier.padding(top = dimensionResource(R.dimen.padding_small)),
+            style = MaterialTheme.typography.displayMedium,
+
+            )
         Text(
             text = stringResource(R.string.years_old, dogAge),
+            style = MaterialTheme.typography.bodyLarge
+
         )
     }
 }

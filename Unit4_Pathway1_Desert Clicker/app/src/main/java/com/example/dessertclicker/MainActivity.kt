@@ -165,15 +165,17 @@ private fun DessertClickerApp(
 
     var revenue by rememberSaveable  { mutableStateOf(0) }
     var dessertsSold by rememberSaveable  { mutableStateOf(0) }
+    // Show the next dessert
+    val dessertToShow = determineDessertToShow(desserts, dessertsSold)
 
-    val currentDessertIndex by rememberSaveable  { mutableStateOf(0) }
-
-    var currentDessertPrice by rememberSaveable  {
-        mutableStateOf(desserts[currentDessertIndex].price)
-    }
-    var currentDessertImageId by rememberSaveable  {
-        mutableStateOf(desserts[currentDessertIndex].imageId)
-    }
+//    var currentDessertIndex by rememberSaveable  { mutableStateOf(0) }
+//
+//    var currentDessertPrice by rememberSaveable  {
+//        mutableStateOf(desserts[currentDessertIndex].price)
+//    }
+//    var currentDessertImageId by rememberSaveable  {
+//        mutableStateOf(desserts[currentDessertIndex].imageId)
+//    }
 
     Scaffold(
         topBar = {
@@ -202,17 +204,12 @@ private fun DessertClickerApp(
         DessertClickerScreen(
             revenue = revenue,
             dessertsSold = dessertsSold,
-            dessertImageId = currentDessertImageId,
+            dessertImageId = dessertToShow.imageId,
             onDessertClicked = {
-
-                // Update the revenue
-                revenue += currentDessertPrice
+                //  Cập nhật doanh thu với giá đúng
+                revenue += dessertToShow.price
+                //  Tăng số lượng đã bán để kích hoạt recomposition cho lần sau
                 dessertsSold++
-
-                // Show the next dessert
-                val dessertToShow = determineDessertToShow(desserts, dessertsSold)
-                currentDessertImageId = dessertToShow.imageId
-                currentDessertPrice = dessertToShow.price
             },
             modifier = Modifier.padding(contentPadding)
         )
@@ -353,6 +350,6 @@ private fun DessertsSoldInfo(dessertsSold: Int, modifier: Modifier = Modifier) {
 @Composable
 fun MyDessertClickerAppPreview() {
     DessertClickerTheme {
-        DessertClickerApp(listOf(Dessert(R.drawable.cupcake, 5, 0)))
+        DessertClickerApp(Datasource.dessertList)
     }
 }

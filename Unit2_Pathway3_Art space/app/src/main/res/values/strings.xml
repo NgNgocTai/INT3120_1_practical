@@ -1,0 +1,15 @@
+    <resources>
+        <string name="app_name">Art Space</string>
+        <string name="starry_night">Starry Night</string>
+        <string name="van_gogh">Vincent van Gogh</string>
+        <string name="mona_lisa">Mona Lisa</string>
+        <string name="leonardo">Leonardo da Vinci</string>
+        <string name="the_scream">The Scream</string>
+        <string name="munch">Edvard Munch</string>
+        <string name="girl_with_pearl">Girl with a Pearl Earring</string>
+        <string name="vermeer">Johannes Vermeer</string>
+        <string name="guernica">Guernica</string>
+        <string name="picasso">Pablo Picasso</string>
+        <string name="night_watch">The Night Watch</string>
+        <string name="rembrandt">Rembrandt</string>
+    </resources>

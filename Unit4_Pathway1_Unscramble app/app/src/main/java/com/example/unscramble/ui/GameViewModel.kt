@@ -5,17 +5,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.unscramble.data.allWords
-
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 // UI state của game
 data class GameUiState(
     val currentScrambledWord: String = ""
 )
 
-class GameViewModel : ViewModel() {
 
-    // Backing property: private mutable, public read-only
+class GameViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
+
+    var userGuess by mutableStateOf("")
+        private set
 
     // Lưu từ hiện tại
     private lateinit var currentWord: String
@@ -35,22 +39,25 @@ class GameViewModel : ViewModel() {
 
     /** Chọn từ random và xáo chữ */
     private fun pickRandomWordAndShuffle(): String {
-        currentWord = allWords.random()
-        return if (usedWords.contains(currentWord)) {
-            pickRandomWordAndShuffle()
-        } else {
-            usedWords.add(currentWord)
-            shuffleCurrentWord(currentWord)
+        if (usedWords.size == allWords.size) {
+            usedWords.clear() // hoặc xử lý gameOver
         }
+        val unused = allWords.filterNot { usedWords.contains(it) }
+        currentWord = unused.random()
+        usedWords.add(currentWord)
+        return shuffleCurrentWord(currentWord)
     }
 
-    /** Đảo chữ trong từ */
     private fun shuffleCurrentWord(word: String): String {
-        val tempWord = word.toCharArray()
-        tempWord.shuffle()
-        while (String(tempWord) == word) {
-            tempWord.shuffle()
-        }
-        return String(tempWord)
+        if (word.length <= 1) return word
+        val chars = word.toCharArray()
+        do {
+            chars.shuffle()
+        } while (String(chars) == word)
+        return String(chars)
     }
+    fun updateUserGuess(guessedWord: String){
+        userGuess = guessedWord
+    }
+
 }

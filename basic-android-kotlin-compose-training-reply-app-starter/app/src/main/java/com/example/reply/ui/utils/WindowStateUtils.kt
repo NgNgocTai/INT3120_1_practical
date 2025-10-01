@@ -5,3 +5,8 @@ enum class ReplyNavigationType {
     NAVIGATION_RAIL,        // Thanh điều hướng cạnh
     PERMANENT_NAVIGATION_DRAWER // Ngăn điều hướng cố định bên trái
 }
+
+enum class ReplyContentType {
+    LIST_ONLY,          // Chỉ hiển thị danh sách
+    LIST_AND_DETAIL     // Hiển thị cả danh sách và chi tiết
+}

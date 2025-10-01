@@ -1,23 +1,9 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.reply.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,13 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send // Thay đổi import
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Report
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -58,7 +45,6 @@ import com.example.reply.data.local.LocalAccountsDataProvider
 import com.example.reply.ui.utils.ReplyContentType
 import com.example.reply.ui.utils.ReplyNavigationType
 
-/* Composable chính cho màn hình chính, chịu trách nhiệm lựa chọn layout tổng thể */
 @Composable
 fun ReplyHomeScreen(
     navigationType: ReplyNavigationType,
@@ -77,7 +63,7 @@ fun ReplyHomeScreen(
         ),
         NavigationItemContent(
             mailboxType = MailboxType.Sent,
-            icon = Icons.AutoMirrored.Filled.Send,
+            icon = Icons.Default.Send,
             text = stringResource(id = R.string.tab_sent)
         ),
         NavigationItemContent(
@@ -91,9 +77,7 @@ fun ReplyHomeScreen(
             text = stringResource(id = R.string.tab_spam)
         )
     )
-
-    // Sửa logic: Thêm điều kiện isShowingHomepage
-    if (navigationType == ReplyNavigationType.PERMANENT_NAVIGATION_DRAWER && replyUiState.isShowingHomepage) {
+    if (navigationType == ReplyNavigationType.PERMANENT_NAVIGATION_DRAWER) {
         val navigationDrawerContentDescription = stringResource(R.string.navigation_drawer)
         PermanentNavigationDrawer(
             drawerContent = {
@@ -147,10 +131,6 @@ fun ReplyHomeScreen(
     }
 }
 
-/**
- * Hiển thị nội dung chính của ứng dụng, sắp xếp các thành phần điều hướng
- * (NavigationRail hoặc BottomNavigationBar) và danh sách email.
- */
 @Composable
 private fun ReplyAppContent(
     navigationType: ReplyNavigationType,
@@ -161,64 +141,58 @@ private fun ReplyAppContent(
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier,
 ) {
-    // Sửa layout: Bỏ Box không cần thiết, Row là thành phần gốc
-    Row(modifier = modifier.fillMaxSize()) {
-        // Hiện Navigation Rail cho màn hình vừa
-        AnimatedVisibility(visible = navigationType == ReplyNavigationType.NAVIGATION_RAIL) {
-            val navigationRailContentDescription = stringResource(R.string.navigation_rail)
-            ReplyNavigationRail(
-                currentTab = replyUiState.currentMailbox,
-                onTabPressed = onTabPressed,
-                navigationItemContentList = navigationItemContentList,
-                modifier = Modifier.testTag(navigationRailContentDescription)
-            )
-        }
-        // Cột chứa nội dung email và thanh điều hướng dưới đáy
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.inverseOnSurface)
-        ) {
-            //Chọn layout nội dung dựa vào kích thước màn hình
-            if (contentType == ReplyContentType.LIST_AND_DETAIL) {
-                // Dùng cho màn hình lớn (list + detail)
-                ReplyListAndDetailContent(
-                    replyUiState = replyUiState,
-                    onEmailCardPressed = onEmailCardPressed,
-                    modifier = Modifier.weight(1f), // Sửa modifier: Bỏ statusBarsPadding
-                )
-            } else {
-                // Dùng cho màn hình nhỏ/vừa (chỉ list)
-                ReplyListOnlyContent(
-                    replyUiState = replyUiState,
-                    onEmailCardPressed = onEmailCardPressed,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding))
-                )
-            }
-
-            //Hiện thanh điều hướng dưới đáy cho màn hình nhỏ
-            AnimatedVisibility(
-                visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION
-            ) {
-                val bottomNavigationContentDescription = stringResource(R.string.navigation_bottom)
-                ReplyBottomNavigationBar(
+    Box(modifier = modifier)
+    {
+        Row(modifier = Modifier.fillMaxSize()) {
+            AnimatedVisibility(visible = navigationType == ReplyNavigationType.NAVIGATION_RAIL) {
+                val navigationRailContentDescription = stringResource(R.string.navigation_rail)
+                ReplyNavigationRail(
                     currentTab = replyUiState.currentMailbox,
                     onTabPressed = onTabPressed,
                     navigationItemContentList = navigationItemContentList,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag(bottomNavigationContentDescription)
+                    modifier = Modifier.testTag(navigationRailContentDescription)
                 )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.inverseOnSurface)
+            ) {
+                if (contentType == ReplyContentType.LIST_AND_DETAIL) {
+                    ReplyListAndDetailContent(
+                        replyUiState = replyUiState,
+                        onEmailCardPressed = onEmailCardPressed,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .weight(1f),
+                    )
+                } else {
+                    ReplyListOnlyContent(
+                        replyUiState = replyUiState,
+                        onEmailCardPressed = onEmailCardPressed,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding))
+                    )
+                }
+                AnimatedVisibility(
+                    visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION
+                ) {
+                    val bottomNavigationContentDescription = stringResource(R.string.navigation_bottom)
+                    ReplyBottomNavigationBar(
+                        currentTab = replyUiState.currentMailbox,
+                        onTabPressed = onTabPressed,
+                        navigationItemContentList = navigationItemContentList,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(bottomNavigationContentDescription)
+                    )
+                }
             }
         }
     }
 }
 
-/**
- * Xây dựng thanh điều hướng dọc (Navigation Rail) cho màn hình kích thước trung bình.
- */
 @Composable
 private fun ReplyNavigationRail(
     currentTab: MailboxType,
@@ -242,9 +216,6 @@ private fun ReplyNavigationRail(
     }
 }
 
-/**
- * Xây dựng thanh điều hướng ngang (Bottom Navigation Bar) cho màn hình nhỏ.
- */
 @Composable
 private fun ReplyBottomNavigationBar(
     currentTab: MailboxType,
@@ -268,10 +239,6 @@ private fun ReplyBottomNavigationBar(
     }
 }
 
-/**
- * Định nghĩa nội dung hiển thị bên trong ngăn điều hướng (Drawer),
- * bao gồm header và các mục menu.
- */
 @Composable
 private fun NavigationDrawerContent(
     selectedDestination: MailboxType,
@@ -309,9 +276,6 @@ private fun NavigationDrawerContent(
     }
 }
 
-/**
- * Composable cho phần đầu (header) của ngăn điều hướng, chứa logo và ảnh đại diện.
- */
 @Composable
 private fun NavigationDrawerHeader(
     modifier: Modifier = Modifier
@@ -330,9 +294,6 @@ private fun NavigationDrawerHeader(
     }
 }
 
-/**
- * Lớp dữ liệu đơn giản để chứa thông tin cho một mục trong thanh điều hướng (loại hộp thư, icon, và văn bản hiển thị).
- */
 private data class NavigationItemContent(
     val mailboxType: MailboxType,
     val icon: ImageVector,

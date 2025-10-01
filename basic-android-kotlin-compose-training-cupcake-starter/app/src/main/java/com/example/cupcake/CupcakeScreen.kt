@@ -67,6 +67,17 @@ fun CupcakeAppBar(
 }
 
 /**
+ * Hàm huỷ order và quay về màn hình Start
+ */
+private fun cancelOrderAndNavigateToStart(
+    viewModel: OrderViewModel,
+    navController: NavHostController
+) {
+    viewModel.resetOrder()
+    navController.popBackStack(CupcakeScreen.Start.name, inclusive = false)
+}
+
+/**
  * Hàm gốc của app Cupcake, chứa NavHost quản lý navigation giữa các màn hình.
  */
 @Composable
@@ -77,8 +88,8 @@ fun CupcakeApp(
     Scaffold(
         topBar = {
             CupcakeAppBar(
-                canNavigateBack = navController.previousBackStackEntry != null, // kiểm tra có thể back không
-                navigateUp = { navController.navigateUp() } // hành động back
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = { navController.navigateUp() }
             )
         }
     ) { innerPadding ->
@@ -88,14 +99,17 @@ fun CupcakeApp(
         // NavHost quản lý các màn hình
         NavHost(
             navController = navController,
-            startDestination = CupcakeScreen.Start.name, // màn hình mặc định
+            startDestination = CupcakeScreen.Start.name,
             modifier = Modifier.padding(innerPadding)
         ) {
             // Start screen
             composable(route = CupcakeScreen.Start.name) {
                 StartOrderScreen(
                     quantityOptions = DataSource.quantityOptions,
-//                    onNextButtonClicked = { navController.navigate(CupcakeScreen.Flavor.name) },
+                    onNextButtonClicked = {
+                        viewModel.setQuantity(it)
+                        navController.navigate(CupcakeScreen.Flavor.name)
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(dimensionResource(R.dimen.padding_medium))
@@ -107,9 +121,12 @@ fun CupcakeApp(
                 val context = LocalContext.current
                 SelectOptionScreen(
                     subtotal = uiState.price,
+                    onNextButtonClicked = { navController.navigate(CupcakeScreen.Pickup.name) },
+                    onCancelButtonClicked = {
+                        cancelOrderAndNavigateToStart(viewModel, navController)
+                    },
                     options = DataSource.flavors.map { id -> context.resources.getString(id) },
                     onSelectionChanged = { viewModel.setFlavor(it) },
-//                    onNextButtonClicked = { navController.navigate(CupcakeScreen.Pickup.name) },
                     modifier = Modifier.fillMaxHeight()
                 )
             }
@@ -118,9 +135,12 @@ fun CupcakeApp(
             composable(route = CupcakeScreen.Pickup.name) {
                 SelectOptionScreen(
                     subtotal = uiState.price,
+                    onNextButtonClicked = { navController.navigate(CupcakeScreen.Summary.name) },
+                    onCancelButtonClicked = {
+                        cancelOrderAndNavigateToStart(viewModel, navController)
+                    },
                     options = uiState.pickupOptions,
                     onSelectionChanged = { viewModel.setDate(it) },
-//                    onNextButtonClicked = { navController.navigate(CupcakeScreen.Summary.name) },
                     modifier = Modifier.fillMaxHeight()
                 )
             }
@@ -129,10 +149,12 @@ fun CupcakeApp(
             composable(route = CupcakeScreen.Summary.name) {
                 OrderSummaryScreen(
                     orderUiState = uiState,
-//                    onCancelButtonClicked = {
-//                        viewModel.resetOrder()
-//                        navController.popBackStack(CupcakeScreen.Start.name, inclusive = false)
-//                    },
+                    onCancelButtonClicked = {
+                        cancelOrderAndNavigateToStart(viewModel, navController)
+                    },
+                    onSendButtonClicked = { subject: String, summary: String ->
+                        // TODO: xử lý gửi order (chia sẻ, email, v.v.)
+                    },
                     modifier = Modifier.fillMaxHeight()
                 )
             }

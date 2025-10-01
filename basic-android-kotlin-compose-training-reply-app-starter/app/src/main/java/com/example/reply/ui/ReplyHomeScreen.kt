@@ -136,50 +136,62 @@ fun ReplyHomeScreen(
 @Composable
 private fun ReplyAppContent(
     navigationType: ReplyNavigationType,
-    contentType : ReplyContentType ,
+    contentType: ReplyContentType,
     replyUiState: ReplyUiState,
     onTabPressed: ((MailboxType) -> Unit),
     onEmailCardPressed: (Email) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier)
-
-    {
-        Row(modifier = Modifier.fillMaxSize()) {
-            AnimatedVisibility(visible = navigationType == ReplyNavigationType.NAVIGATION_RAIL) {
-                val navigationRailContentDescription = stringResource(R.string.navigation_rail)
-                ReplyNavigationRail(
-                    currentTab = replyUiState.currentMailbox,
-                    onTabPressed = onTabPressed,
-                    navigationItemContentList = navigationItemContentList,
-                    modifier = Modifier.testTag(navigationRailContentDescription)
+    Row(modifier = modifier.fillMaxSize()) {
+        // Hiện Navigation Rail cho màn hình vừa
+        AnimatedVisibility(visible = navigationType == ReplyNavigationType.NAVIGATION_RAIL) {
+            val navigationRailContentDescription = stringResource(R.string.navigation_rail)
+            ReplyNavigationRail(
+                currentTab = replyUiState.currentMailbox,
+                onTabPressed = onTabPressed,
+                navigationItemContentList = navigationItemContentList,
+                modifier = Modifier.testTag(navigationRailContentDescription)
+            )
+        }
+        // Cột chứa nội dung email và thanh điều hướng dưới đáy
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseOnSurface)
+        ) {
+            //Chọn layout nội dung dựa vào kích thước màn hình
+            if (contentType == ReplyContentType.LIST_AND_DETAIL) {
+                // Dùng cho màn hình lớn (list + detail)
+                ReplyListAndDetailContent(
+                    replyUiState = replyUiState,
+                    onEmailCardPressed = onEmailCardPressed,
+                    modifier = Modifier.weight(1f),
                 )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.inverseOnSurface)
-            ) {
+            } else {
+                // Dùng cho màn hình nhỏ/vừa (chỉ list)
                 ReplyListOnlyContent(
                     replyUiState = replyUiState,
                     onEmailCardPressed = onEmailCardPressed,
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding))
-                        .padding(top = dimensionResource(R.dimen.detail_subject_padding_end))
                 )
-                AnimatedVisibility(
-                    visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION
-                ) {
-                    ReplyBottomNavigationBar(
-                        currentTab = replyUiState.currentMailbox,
-                        onTabPressed = onTabPressed,
-                        navigationItemContentList = navigationItemContentList,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                }
+            }
+
+            //Hiện thanh điều hướng dưới đáy cho màn hình nhỏ
+            AnimatedVisibility(
+                visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION
+            ) {
+                val bottomNavigationContentDescription = stringResource(R.string.navigation_bottom)
+                ReplyBottomNavigationBar(
+                    currentTab = replyUiState.currentMailbox,
+                    onTabPressed = onTabPressed,
+                    navigationItemContentList = navigationItemContentList,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(bottomNavigationContentDescription)
+                )
             }
         }
     }

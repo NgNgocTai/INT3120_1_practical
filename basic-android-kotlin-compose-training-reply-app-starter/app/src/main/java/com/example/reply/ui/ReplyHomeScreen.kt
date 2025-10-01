@@ -1,10 +1,23 @@
-
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.reply.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,7 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send // Thay đổi import
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Report
@@ -49,7 +62,7 @@ import com.example.reply.ui.utils.ReplyNavigationType
 @Composable
 fun ReplyHomeScreen(
     navigationType: ReplyNavigationType,
-    contentType : ReplyContentType,
+    contentType: ReplyContentType,
     replyUiState: ReplyUiState,
     onTabPressed: (MailboxType) -> Unit,
     onEmailCardPressed: (Email) -> Unit,
@@ -78,12 +91,15 @@ fun ReplyHomeScreen(
             text = stringResource(id = R.string.tab_spam)
         )
     )
+
+    // Sửa logic: Thêm điều kiện isShowingHomepage
     if (navigationType == ReplyNavigationType.PERMANENT_NAVIGATION_DRAWER && replyUiState.isShowingHomepage) {
         val navigationDrawerContentDescription = stringResource(R.string.navigation_drawer)
         PermanentNavigationDrawer(
             drawerContent = {
-                PermanentDrawerSheet(Modifier.width(dimensionResource(R.dimen.drawer_width)),
-                    drawerContainerColor = MaterialTheme.colorScheme.inverseOnSurface
+                PermanentDrawerSheet(
+                    modifier = Modifier.width(dimensionResource(R.dimen.drawer_width)),
+                    drawerContainerColor = MaterialTheme.colorScheme.inverseOnSurface,
                 ) {
                     NavigationDrawerContent(
                         selectedDestination = replyUiState.currentMailbox,
@@ -92,6 +108,7 @@ fun ReplyHomeScreen(
                         modifier = Modifier
                             .wrapContentWidth()
                             .fillMaxHeight()
+                            .background(MaterialTheme.colorScheme.inverseOnSurface)
                             .padding(dimensionResource(R.dimen.drawer_padding_content))
                     )
                 }
@@ -123,7 +140,8 @@ fun ReplyHomeScreen(
             ReplyDetailsScreen(
                 replyUiState = replyUiState,
                 onBackPressed = onDetailScreenBackPressed,
-                modifier = modifier
+                modifier = modifier,
+                isFullScreen = true
             )
         }
     }
@@ -143,6 +161,7 @@ private fun ReplyAppContent(
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier,
 ) {
+    // Sửa layout: Bỏ Box không cần thiết, Row là thành phần gốc
     Row(modifier = modifier.fillMaxSize()) {
         // Hiện Navigation Rail cho màn hình vừa
         AnimatedVisibility(visible = navigationType == ReplyNavigationType.NAVIGATION_RAIL) {
@@ -166,7 +185,7 @@ private fun ReplyAppContent(
                 ReplyListAndDetailContent(
                     replyUiState = replyUiState,
                     onEmailCardPressed = onEmailCardPressed,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f), // Sửa modifier: Bỏ statusBarsPadding
                 )
             } else {
                 // Dùng cho màn hình nhỏ/vừa (chỉ list)
@@ -196,6 +215,7 @@ private fun ReplyAppContent(
         }
     }
 }
+
 /**
  * Xây dựng thanh điều hướng dọc (Navigation Rail) cho màn hình kích thước trung bình.
  */

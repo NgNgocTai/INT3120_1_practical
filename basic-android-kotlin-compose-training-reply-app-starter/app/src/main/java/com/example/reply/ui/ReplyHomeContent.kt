@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.reply.R
 import com.example.reply.data.Email
 import com.example.reply.data.local.LocalAccountsDataProvider
+import androidx.compose.ui.platform.LocalContext
 @Composable
 fun ReplyListOnlyContent(
     replyUiState: ReplyUiState,
@@ -111,7 +112,8 @@ fun ReplyListAndDetailContent(
             modifier = Modifier
                 .padding(top = dimensionResource(R.dimen.email_list_item_vertical_spacing))
                 .weight(1f),
-            onBackPressed = {}
+            // Khi nhấn back, đóng ứng dụng
+            onBackPressed = {activity.finish()}
         )
     }
 }

@@ -1,23 +1,26 @@
 package com.example.reply.ui
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -30,52 +33,71 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import com.example.reply.R
 import com.example.reply.data.Email
 import com.example.reply.data.MailboxType
-import androidx.activity.compose.BackHandler
 
+/**
+ * Composable chính cho màn hình chi tiết email, hiển thị toàn bộ nội dung email.
+ */
 @Composable
 fun ReplyDetailsScreen(
     replyUiState: ReplyUiState,
     onBackPressed: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFullScreen: Boolean = false // Thêm tham số để xử lý layout thích ứng
 ) {
+    //Nút back
     BackHandler {
         onBackPressed()
     }
     Box(modifier = modifier) {
         LazyColumn(
-            contentPadding = WindowInsets.safeDrawing.asPaddingValues(),
+            // Cập nhật padding để chỉ lấy giá trị top từ safeDrawing
+            contentPadding = PaddingValues(
+                top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+            ),
             modifier = Modifier
+                .testTag(stringResource(R.string.details_screen)) // Thêm testTag để kiểm thử
                 .fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.inverseOnSurface)
         ) {
             item {
-                ReplyDetailsScreenTopBar(
-                    onBackPressed,
-                    replyUiState,
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            bottom = dimensionResource(R.dimen.detail_topbar_padding_bottom),
-                            top = dimensionResource(R.dimen.topbar_padding_vertical)
-                        )
-                )
+                // Chỉ hiển thị TopBar khi ở chế độ toàn màn hình
+                if (isFullScreen) {
+                    ReplyDetailsScreenTopBar(
+                        onBackPressed,
+                        replyUiState,
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                bottom = dimensionResource(R.dimen.detail_topbar_padding_bottom),
+                                top = dimensionResource(R.dimen.topbar_padding_vertical)
+                            )
+                    )
+                }
                 ReplyEmailDetailsCard(
                     email = replyUiState.currentSelectedEmail,
                     mailboxType = replyUiState.currentMailbox,
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .padding(horizontal = dimensionResource(R.dimen.detail_card_outer_padding_horizontal))
+                    isFullScreen = isFullScreen, // Truyền trạng thái isFullScreen
+                    // Áp dụng padding có điều kiện
+                    modifier = if (isFullScreen) {
+                        Modifier.padding(horizontal = dimensionResource(R.dimen.detail_card_outer_padding_horizontal))
+                    } else {
+                        Modifier
+                    }
                 )
             }
         }
     }
 }
 
+/**
+ * Thanh công cụ trên cùng của màn hình chi tiết, chứa nút back và tiêu đề email.
+ */
 @Composable
 private fun ReplyDetailsScreenTopBar(
     onBackButtonClicked: () -> Unit,
@@ -93,7 +115,8 @@ private fun ReplyDetailsScreenTopBar(
                 .background(MaterialTheme.colorScheme.surface, shape = CircleShape),
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                // Thay đổi icon để đồng bộ
+                imageVector = Icons.Default.ArrowBack,
                 contentDescription = stringResource(id = R.string.navigation_back)
             )
         }
@@ -112,11 +135,15 @@ private fun ReplyDetailsScreenTopBar(
     }
 }
 
+/**
+ * Thẻ (Card) chính chứa toàn bộ nội dung của email đang được chọn.
+ */
 @Composable
 private fun ReplyEmailDetailsCard(
     email: Email,
     mailboxType: MailboxType,
     modifier: Modifier = Modifier,
+    isFullScreen: Boolean = false // Thêm tham số
 ) {
     val context = LocalContext.current
     val displayToast = { text: String ->
@@ -135,15 +162,21 @@ private fun ReplyEmailDetailsCard(
                 email,
                 Modifier.fillMaxWidth()
             )
-            Text(
-                text = stringResource(email.subject),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(
-                    top = dimensionResource(R.dimen.detail_content_padding_top),
-                    bottom = dimensionResource(R.dimen.detail_expanded_subject_body_spacing)
-                ),
-            )
+            // Hiển thị tiêu đề hoặc Spacer dựa vào isFullScreen
+            if (isFullScreen) {
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.detail_content_padding_top)))
+            } else {
+                Text(
+                    text = stringResource(email.subject),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(
+                        top = dimensionResource(R.dimen.detail_content_padding_top),
+                        bottom = dimensionResource(R.dimen.detail_expanded_subject_body_spacing)
+                    ),
+                )
+            }
+
             Text(
                 text = stringResource(email.body),
                 style = MaterialTheme.typography.bodyLarge,
@@ -154,6 +187,10 @@ private fun ReplyEmailDetailsCard(
     }
 }
 
+
+/**
+ * Hiển thị các nút hành động (Reply, Delete,...) tùy theo loại hộp thư.
+ */
 @Composable
 private fun DetailsScreenButtonBar(
     mailboxType: MailboxType,
@@ -218,6 +255,9 @@ private fun DetailsScreenButtonBar(
     }
 }
 
+/**
+ * Phần header của email, hiển thị thông tin người gửi (ảnh, tên, thời gian).
+ */
 @Composable
 private fun DetailsScreenHeader(email: Email, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
@@ -250,7 +290,9 @@ private fun DetailsScreenHeader(email: Email, modifier: Modifier = Modifier) {
         }
     }
 }
-
+/**
+ * Một nút hành động có thể tái sử dụng, với màu sắc tùy chỉnh.
+ */
 @Composable
 private fun ActionButton(
     text: String,
@@ -266,21 +308,21 @@ private fun ActionButton(
                 .padding(vertical = dimensionResource(R.dimen.detail_action_button_padding_vertical)),
             colors = ButtonDefaults.buttonColors(
                 containerColor =
-                if (containIrreversibleAction) {
-                    MaterialTheme.colorScheme.onErrorContainer
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer
-                }
+                    if (containIrreversibleAction) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer
+                    }
             )
         ) {
             Text(
                 text = text,
                 color =
-                if (containIrreversibleAction) {
-                    MaterialTheme.colorScheme.onError
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                    if (containIrreversibleAction) {
+                        MaterialTheme.colorScheme.onError
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
             )
         }
     }

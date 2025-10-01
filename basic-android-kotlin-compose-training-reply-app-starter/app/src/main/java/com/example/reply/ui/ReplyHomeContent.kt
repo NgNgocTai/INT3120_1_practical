@@ -36,13 +36,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.example.reply.R
 import com.example.reply.data.Email
 import com.example.reply.data.local.LocalAccountsDataProvider
-
 @Composable
 fun ReplyListOnlyContent(
     replyUiState: ReplyUiState,
     onEmailCardPressed: (Email) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Hiển thị danh sách email dạng full list (không có detail)
     val emails = replyUiState.currentMailboxEmails
 
     LazyColumn(
@@ -53,12 +53,14 @@ fun ReplyListOnlyContent(
         )
     ) {
         item {
+            // Top bar trên cùng
             ReplyHomeTopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = dimensionResource(R.dimen.topbar_padding_vertical))
             )
         }
+        // Hiển thị từng email trong danh sách
         items(emails, key = { email -> email.id }) { email ->
             ReplyEmailListItem(
                 email = email,
@@ -77,6 +79,7 @@ fun ReplyListAndDetailContent(
     onEmailCardPressed: (Email) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Hiển thị danh sách email + chi tiết email (2 cột)
     val emails = replyUiState.currentMailboxEmails
     Row(
         modifier = modifier,
@@ -102,6 +105,7 @@ fun ReplyListAndDetailContent(
             }
         }
         val activity = LocalContext.current as Activity
+        // Hiển thị màn hình chi tiết email
         ReplyDetailsScreen(
             replyUiState = replyUiState,
             modifier = Modifier
@@ -120,6 +124,7 @@ fun ReplyEmailListItem(
     onCardClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Item hiển thị email trong danh sách
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -161,6 +166,7 @@ fun ReplyEmailListItem(
 
 @Composable
 private fun ReplyEmailItemHeader(email: Email, modifier: Modifier = Modifier) {
+    // Header của từng email: avatar + tên + thời gian
     Row(modifier = modifier) {
         ReplyProfileImage(
             drawableResource = email.sender.avatar,
@@ -196,6 +202,7 @@ fun ReplyProfileImage(
     description: String,
     modifier: Modifier = Modifier,
 ) {
+    // Hiển thị ảnh đại diện dạng tròn
     Box(modifier = modifier) {
         Image(
             modifier = Modifier.clip(CircleShape),
@@ -210,6 +217,7 @@ fun ReplyLogo(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary
 ) {
+    // Hiển thị logo ứng dụng
     Image(
         painter = painterResource(R.drawable.logo),
         contentDescription = stringResource(R.string.logo),
@@ -220,6 +228,7 @@ fun ReplyLogo(
 
 @Composable
 private fun ReplyHomeTopBar(modifier: Modifier = Modifier) {
+    // Top bar chính: logo + avatar user
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,

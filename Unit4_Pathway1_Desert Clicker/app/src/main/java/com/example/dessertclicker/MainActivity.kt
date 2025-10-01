@@ -121,10 +121,6 @@ fun determineDessertToShow(
         if (dessertsSold >= dessert.startProductionAmount) {
             dessertToShow = dessert
         } else {
-            // The list of desserts is sorted by startProductionAmount. As you sell more desserts,
-            // you'll start producing more expensive desserts as determined by startProductionAmount
-            // We know to break as soon as we see a dessert who's "startProductionAmount" is greater
-            // than the amount sold.
             break
         }
     }
@@ -167,15 +163,6 @@ private fun DessertClickerApp(
     var dessertsSold by rememberSaveable  { mutableStateOf(0) }
     // Show the next dessert
     val dessertToShow = determineDessertToShow(desserts, dessertsSold)
-
-//    var currentDessertIndex by rememberSaveable  { mutableStateOf(0) }
-//
-//    var currentDessertPrice by rememberSaveable  {
-//        mutableStateOf(desserts[currentDessertIndex].price)
-//    }
-//    var currentDessertImageId by rememberSaveable  {
-//        mutableStateOf(desserts[currentDessertIndex].imageId)
-//    }
 
     Scaffold(
         topBar = {

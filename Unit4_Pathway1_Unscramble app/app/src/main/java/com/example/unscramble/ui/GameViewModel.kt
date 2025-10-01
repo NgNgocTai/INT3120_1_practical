@@ -70,6 +70,7 @@ class GameViewModel : ViewModel() {
 
     //Kiểm tra guese của user
     fun checkUserGuess() {
+        if (_uiState.value.isGameOver) return
         if (userGuess.equals(currentWord, ignoreCase = true)) {
             // Người dùng trả lời đúng , +1 điểm
             val updatedScore = _uiState.value.score.plus(SCORE_INCREASE)

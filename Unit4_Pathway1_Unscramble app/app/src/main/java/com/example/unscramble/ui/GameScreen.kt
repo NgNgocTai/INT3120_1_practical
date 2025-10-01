@@ -66,6 +66,7 @@ fun GameScreen(
         GameLayout(
             onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
             onKeyboardDone = { gameViewModel.checkUserGuess() },
+            wordCount = gameUiState.currentWordCount,
             currentScrambledWord = gameUiState.currentScrambledWord,
             userGuess = gameViewModel.userGuess,
             isGuessWrong = gameUiState.isGuessedWordWrong,
@@ -86,7 +87,8 @@ fun GameScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 8.dp),
-                onClick = { gameViewModel.checkUserGuess() }
+                onClick = { gameViewModel.checkUserGuess() },
+                enabled = !gameUiState.isGameOver
             ) {
                 Text(
                     text = stringResource(R.string.submit),
@@ -95,7 +97,7 @@ fun GameScreen(
             }
 
             OutlinedButton(
-                onClick = { },
+                onClick = { gameViewModel.skipWord() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -105,7 +107,8 @@ fun GameScreen(
             }
         }
 
-        GameStatus(score = 0, modifier = Modifier.padding(20.dp))
+        GameStatus(score = gameUiState.score, modifier = Modifier.padding(20.dp))
+
     }
 }
 
@@ -126,6 +129,7 @@ fun GameStatus(score: Int, modifier: Modifier = Modifier) {
 fun GameLayout(
     onUserGuessChanged: (String) -> Unit,
     onKeyboardDone: () -> Unit,
+    wordCount: Int,
     currentScrambledWord: String,
     isGuessWrong: Boolean,
     userGuess: String,
@@ -148,7 +152,7 @@ fun GameLayout(
                     .background(colorScheme.surfaceTint)
                     .padding(horizontal = 10.dp, vertical = 4.dp)
                     .align(alignment = Alignment.End),
-                text = stringResource(R.string.word_count, 0),
+                text = stringResource(R.string.word_count, wordCount),
                 style = typography.titleMedium,
                 color = colorScheme.onPrimary
             )

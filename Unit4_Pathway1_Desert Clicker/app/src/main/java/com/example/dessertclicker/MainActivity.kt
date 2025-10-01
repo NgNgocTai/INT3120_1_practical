@@ -13,35 +13,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -53,26 +31,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
-import com.example.dessertclicker.data.Datasource
-import com.example.dessertclicker.model.Dessert
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dessertclicker.ui.DessertViewModel
 import com.example.dessertclicker.ui.theme.DessertClickerTheme
 
 const val TAG = "MainActivity"
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "onCreate called") // Log ra Logcat
-
+        Log.d(TAG, "onCreate called")
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             DessertClickerTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .statusBarsPadding(),
+                        .statusBarsPadding()
                 ) {
-                    DessertClickerApp(desserts = Datasource.dessertList)
+                    DessertClickerApp()
                 }
             }
         }
@@ -110,59 +87,14 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Determine which dessert to show.
+ * Composable chính của app.
+ * Lấy dữ liệu từ ViewModel và hiển thị màn hình game.
  */
-fun determineDessertToShow(
-    desserts: List<Dessert>,
-    dessertsSold: Int
-): Dessert {
-    var dessertToShow = desserts.first()
-    for (dessert in desserts) {
-        if (dessertsSold >= dessert.startProductionAmount) {
-            dessertToShow = dessert
-        } else {
-            break
-        }
-    }
-
-    return dessertToShow
-}
-
-/**
- * Share desserts sold information using ACTION_SEND intent
- */
-private fun shareSoldDessertsInformation(intentContext: Context, dessertsSold: Int, revenue: Int) {
-    val sendIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(
-            Intent.EXTRA_TEXT,
-            intentContext.getString(R.string.share_text, dessertsSold, revenue)
-        )
-        type = "text/plain"
-    }
-
-    val shareIntent = Intent.createChooser(sendIntent, null)
-
-    try {
-        ContextCompat.startActivity(intentContext, shareIntent, null)
-    } catch (e: ActivityNotFoundException) {
-        Toast.makeText(
-            intentContext,
-            intentContext.getString(R.string.sharing_not_available),
-            Toast.LENGTH_LONG
-        ).show()
-    }
-}
-
 @Composable
 private fun DessertClickerApp(
-    desserts: List<Dessert>
+    viewModel: DessertViewModel = viewModel()
 ) {
-
-    var revenue by rememberSaveable  { mutableStateOf(0) }
-    var dessertsSold by rememberSaveable  { mutableStateOf(0) }
-    // Show the next dessert
-    val dessertToShow = determineDessertToShow(desserts, dessertsSold)
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -172,37 +104,39 @@ private fun DessertClickerApp(
                 onShareButtonClicked = {
                     shareSoldDessertsInformation(
                         intentContext = intentContext,
-                        dessertsSold = dessertsSold,
-                        revenue = revenue
+                        dessertsSold = uiState.dessertsSold,
+                        revenue = uiState.revenue
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        start = WindowInsets.safeDrawing.asPaddingValues()
+                        start = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateStartPadding(layoutDirection),
-                        end = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateEndPadding(layoutDirection),
+                        end = WindowInsets.safeDrawing
+                            .asPaddingValues()
+                            .calculateEndPadding(layoutDirection)
                     )
                     .background(MaterialTheme.colorScheme.primary)
             )
         }
     ) { contentPadding ->
         DessertClickerScreen(
-            revenue = revenue,
-            dessertsSold = dessertsSold,
-            dessertImageId = dessertToShow.imageId,
+            revenue = uiState.revenue,
+            dessertsSold = uiState.dessertsSold,
+            dessertImageId = uiState.currentDessertImageId,
             onDessertClicked = {
-                //  Cập nhật doanh thu với giá đúng
-                revenue += dessertToShow.price
-                //  Tăng số lượng đã bán để kích hoạt recomposition cho lần sau
-                dessertsSold++
+                viewModel.onDessertClicked()
             },
             modifier = Modifier.padding(contentPadding)
         )
     }
 }
 
+/**
+ * TopBar của app có title và nút share
+ */
 @Composable
 private fun DessertClickerAppBar(
     onShareButtonClicked: () -> Unit,
@@ -211,17 +145,17 @@ private fun DessertClickerAppBar(
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = stringResource(R.string.app_name),
             modifier = Modifier.padding(start = dimensionResource(R.dimen.padding_medium)),
             color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge
         )
         IconButton(
             onClick = onShareButtonClicked,
-            modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium)),
+            modifier = Modifier.padding(end = dimensionResource(R.dimen.padding_medium))
         ) {
             Icon(
                 imageVector = Icons.Filled.Share,
@@ -232,6 +166,9 @@ private fun DessertClickerAppBar(
     }
 }
 
+/**
+ * Màn hình chính hiển thị hình bánh, doanh thu và số lượng bán
+ */
 @Composable
 fun DessertClickerScreen(
     revenue: Int,
@@ -250,7 +187,7 @@ fun DessertClickerScreen(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
             ) {
                 Image(
                     painter = painterResource(dessertImageId),
@@ -260,7 +197,7 @@ fun DessertClickerScreen(
                         .height(dimensionResource(R.dimen.image_size))
                         .align(Alignment.Center)
                         .clickable { onDessertClicked() },
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
             }
             TransactionInfo(
@@ -272,6 +209,9 @@ fun DessertClickerScreen(
     }
 }
 
+/**
+ * Hiển thị thông tin giao dịch: doanh thu và số bánh đã bán
+ */
 @Composable
 private fun TransactionInfo(
     revenue: Int,
@@ -294,11 +234,14 @@ private fun TransactionInfo(
     }
 }
 
+/**
+ * Hiển thị doanh thu
+ */
 @Composable
 private fun RevenueInfo(revenue: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = stringResource(R.string.total_revenue),
@@ -314,11 +257,14 @@ private fun RevenueInfo(revenue: Int, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Hiển thị số bánh đã bán
+ */
 @Composable
 private fun DessertsSoldInfo(dessertsSold: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = stringResource(R.string.dessert_sold),
@@ -333,10 +279,43 @@ private fun DessertsSoldInfo(dessertsSold: Int, modifier: Modifier = Modifier) {
     }
 }
 
-@Preview
+/**
+ * Chia sẻ thông tin doanh thu và số bánh đã bán qua intent ACTION_SEND
+ */
+private fun shareSoldDessertsInformation(
+    intentContext: Context,
+    dessertsSold: Int,
+    revenue: Int
+) {
+    val sendIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(
+            Intent.EXTRA_TEXT,
+            intentContext.getString(R.string.share_text, dessertsSold, revenue)
+        )
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sendIntent, null)
+
+    try {
+        ContextCompat.startActivity(intentContext, shareIntent, null)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(
+            intentContext,
+            intentContext.getString(R.string.sharing_not_available),
+            Toast.LENGTH_LONG
+        ).show()
+    }
+}
+
+/**
+ * Preview của DessertClickerApp
+ */
+@Preview(showBackground = true)
 @Composable
 fun MyDessertClickerAppPreview() {
     DessertClickerTheme {
-        DessertClickerApp(Datasource.dessertList)
+        DessertClickerApp()
     }
 }

@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,41 +26,36 @@ import com.example.cupcake.R
 import com.example.cupcake.ui.components.FormattedPriceLabel
 import com.example.cupcake.ui.theme.CupcakeTheme
 
-/**
- * Composable that displays the list of items as [RadioButton] options,
- * [onSelectionChanged] lambda that notifies the parent composable when a new value is selected,
- * [onCancelButtonClicked] lambda that cancels the order when user clicks cancel and
- * [onNextButtonClicked] lambda that triggers the navigation to next screen
- */
 @Composable
 fun SelectOptionScreen(
-    subtotal: String,
-    options: List<String>,
-    onSelectionChanged: (String) -> Unit = {},   // user chọn option nào
-    onCancelButtonClicked: () -> Unit = {},      // user bấm Cancel
-    onNextButtonClicked: () -> Unit = {},        // user bấm Next
+    subtotal: String,                   // tổng tiền hiện tại
+    options: List<String>,              // list các option
+    onSelectionChanged: (String) -> Unit = {}, // callback khi chọn option
+    onCancelButtonClicked: () -> Unit = {},    // callback hủy
+    onNextButtonClicked: () -> Unit = {},      // callback tiếp
     modifier: Modifier = Modifier
 ) {
-    var selectedValue by rememberSaveable { mutableStateOf("") }
+    var selectedValue by rememberSaveable { mutableStateOf("") } // lưu option đã chọn
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // Danh sách option với RadioButton
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))) {
             options.forEach { item ->
                 Row(
                     modifier = Modifier.selectable(
-                        selected = selectedValue == item,
+                        selected = selectedValue == item,  // đánh dấu đã chọn
                         onClick = {
                             selectedValue = item
-                            onSelectionChanged(item)
+                            onSelectionChanged(item)      // thông báo thay đổi
                         }
                     ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
-                        selected = selectedValue == item,
+                        selected = selectedValue == item, // trạng thái nút radio
                         onClick = {
                             selectedValue = item
                             onSelectionChanged(item)
@@ -71,12 +64,14 @@ fun SelectOptionScreen(
                     Text(item)
                 }
             }
+
             Divider(
                 thickness = dimensionResource(R.dimen.thickness_divider),
                 modifier = Modifier.padding(bottom = dimensionResource(R.dimen.padding_medium))
             )
+
             FormattedPriceLabel(
-                subtotal = subtotal,
+                subtotal = subtotal, // hiển thị subtotal
                 modifier = Modifier
                     .align(Alignment.End)
                     .padding(
@@ -85,6 +80,8 @@ fun SelectOptionScreen(
                     )
             )
         }
+
+        // Nút hủy / tiếp
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,26 +97,24 @@ fun SelectOptionScreen(
             }
             Button(
                 modifier = Modifier.weight(1f),
-                // the button is enabled when the user makes a selection
-                enabled = selectedValue.isNotEmpty(),
+                enabled = selectedValue.isNotEmpty(), // chỉ enable khi chọn option
                 onClick = onNextButtonClicked
             ) {
                 Text(stringResource(R.string.next))
             }
         }
     }
+
 }
 
 @Preview
 @Composable
 fun SelectOptionPreview() {
     CupcakeTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            SelectOptionScreen(
-                subtotal = "299.99",
-                options = listOf("Option 1", "Option 2", "Option 3", "Option 4"),
-                modifier = Modifier.fillMaxHeight()
-            )
-        }
+        SelectOptionScreen(
+            subtotal = "299.99",
+            options = listOf("Option 1", "Option 2", "Option 3", "Option 4"),
+            modifier = Modifier.fillMaxHeight()
+        )
     }
 }

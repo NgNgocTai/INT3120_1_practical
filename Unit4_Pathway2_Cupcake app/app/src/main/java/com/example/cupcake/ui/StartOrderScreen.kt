@@ -1,4 +1,3 @@
-
 package com.example.cupcake.ui
 
 import androidx.annotation.StringRes
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,21 +26,17 @@ import com.example.cupcake.R
 import com.example.cupcake.data.DataSource
 import com.example.cupcake.ui.theme.CupcakeTheme
 
-/**
- * Composable that allows the user to select the desired cupcake quantity and expects
- * [onNextButtonClicked] lambda that expects the selected quantity and triggers the navigation to
- * next screen
- */
 @Composable
 fun StartOrderScreen(
-    quantityOptions: List<Pair<Int, Int>>,
-    onNextButtonClicked: (Int) -> Unit,   // callback: nhận số lượng bánh user chọn
+    quantityOptions: List<Pair<Int, Int>>, // List các cặp stringId -> số lượng
+    onNextButtonClicked: (Int) -> Unit,    // Callback khi chọn số lượng
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // Phần header: hình + tiêu đề
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -50,7 +44,7 @@ fun StartOrderScreen(
         ) {
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
             Image(
-                painter = painterResource(R.drawable.cupcake),
+                painter = painterResource(R.drawable.cupcake), // ảnh cupcake
                 contentDescription = null,
                 modifier = Modifier.width(300.dp)
             )
@@ -61,30 +55,27 @@ fun StartOrderScreen(
             )
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
         }
+
+        // Danh sách nút chọn số lượng
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(
-                dimensionResource(id = R.dimen.padding_medium)
-            )
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
         ) {
             quantityOptions.forEach { item ->
                 SelectQuantityButton(
                     labelResourceId = item.first,
-                    onClick = { onNextButtonClicked(item.second) }
+                    onClick = { onNextButtonClicked(item.second) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
     }
 }
 
-/**
- * Customizable button composable that displays the [labelResourceId]
- * and triggers [onClick] lambda when this composable is clicked
- */
 @Composable
 fun SelectQuantityButton(
-    @StringRes labelResourceId: Int,
+    @StringRes labelResourceId: Int, // string hiển thị trên nút
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -100,14 +91,12 @@ fun SelectQuantityButton(
 @Composable
 fun StartOrderPreview() {
     CupcakeTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            StartOrderScreen(
-                quantityOptions = DataSource.quantityOptions,
-                onNextButtonClicked = {},
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(dimensionResource(R.dimen.padding_medium))
-            )
-        }
+        StartOrderScreen(
+            quantityOptions = DataSource.quantityOptions,
+            onNextButtonClicked = {},
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(dimensionResource(R.dimen.padding_medium))
+        )
     }
 }

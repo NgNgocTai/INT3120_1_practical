@@ -1,6 +1,5 @@
 package com.example.cupcake.ui
 
-import android.view.Surface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,12 +24,7 @@ import com.example.cupcake.R
 import com.example.cupcake.data.OrderUiState
 import com.example.cupcake.ui.components.FormattedPriceLabel
 import com.example.cupcake.ui.theme.CupcakeTheme
-import androidx.compose.material3.Surface
-/**
- * This composable expects [orderUiState] that represents the order state, [onCancelButtonClicked]
- * lambda that triggers canceling the order and passes the final order to [onSendButtonClicked]
- * lambda
- */
+
 @Composable
 fun OrderSummaryScreen(
     orderUiState: OrderUiState,
@@ -41,12 +34,14 @@ fun OrderSummaryScreen(
 ) {
     val resources = LocalContext.current.resources
 
+    // Số lượng cupcake
     val numberOfCupcakes = resources.getQuantityString(
         R.plurals.cupcakes,
         orderUiState.quantity,
         orderUiState.quantity
     )
-    //Load and format a string resource with the parameters.
+
+    // Tóm tắt đơn hàng
     val orderSummary = stringResource(
         R.string.order_details,
         numberOfCupcakes,
@@ -55,14 +50,12 @@ fun OrderSummaryScreen(
         orderUiState.quantity
     )
     val newOrder = stringResource(R.string.new_cupcake_order)
-    //Create a list of order summary to display
+
+    // Danh sách hiển thị thông tin đơn hàng
     val items = listOf(
-        // Summary line 1: display selected quantity
-        Pair(stringResource(R.string.quantity), numberOfCupcakes),
-        // Summary line 2: display selected flavor
-        Pair(stringResource(R.string.flavor), orderUiState.flavor),
-        // Summary line 3: display selected pickup date
-        Pair(stringResource(R.string.pickup_date), orderUiState.date)
+        stringResource(R.string.quantity) to numberOfCupcakes,
+        stringResource(R.string.flavor) to orderUiState.flavor,
+        stringResource(R.string.pickup_date) to orderUiState.date
     )
 
     Column(
@@ -84,6 +77,8 @@ fun OrderSummaryScreen(
                 modifier = Modifier.align(Alignment.End)
             )
         }
+
+        // Nút gửi / hủy
         Row(
             modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium))
         ) {
@@ -96,7 +91,6 @@ fun OrderSummaryScreen(
                 ) {
                     Text(stringResource(R.string.send))
                 }
-                }
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onCancelButtonClicked
@@ -106,18 +100,17 @@ fun OrderSummaryScreen(
             }
         }
     }
+}
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun OrderSummaryPreview() {
     CupcakeTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            OrderSummaryScreen(
-                orderUiState = OrderUiState(0, "Test", "Test", "$300.00"),
-                onSendButtonClicked = { _: String, _: String -> },
-                onCancelButtonClicked = {},
-                modifier = Modifier.fillMaxHeight()
-            )
-        }
+        OrderSummaryScreen(
+            orderUiState = OrderUiState(0, "Test", "Test", "$300.00"),
+            onSendButtonClicked = { _, _ -> },
+            onCancelButtonClicked = {},
+            modifier = Modifier.fillMaxHeight()
+        )
     }
 }

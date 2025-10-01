@@ -64,19 +64,19 @@ class GameViewModelTest {
     fun gameViewModel_WordSkipped_ScoreUnchangedAndWordCountIncreased() {
         var currentGameUiState = viewModel.uiState.value
         val correctPlayerWord = getUnscrambledWord(currentGameUiState.currentScrambledWord)
-
         viewModel.updateUserGuess(correctPlayerWord)
         viewModel.checkUserGuess()
+
         currentGameUiState = viewModel.uiState.value
         val lastWordCount = currentGameUiState.currentWordCount
-
         viewModel.skipWord()
         currentGameUiState = viewModel.uiState.value
-        // Kiểm tra điểm không đổi sau khi bỏ qua
+        // Điểm không đổi
         assertEquals(SCORE_AFTER_FIRST_CORRECT_ANSWER, currentGameUiState.score)
-        // Kiểm tra số từ tăng 1
+        // Số từ tăng 1
         assertEquals(lastWordCount + 1, currentGameUiState.currentWordCount)
     }
+
 
     @Test
     fun gameViewModel_AllWordsGuessed_UiStateUpdatedCorrectly() {

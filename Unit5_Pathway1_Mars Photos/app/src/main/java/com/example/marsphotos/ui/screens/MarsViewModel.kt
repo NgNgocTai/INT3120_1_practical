@@ -1,26 +1,40 @@
 package com.example.marsphotos.ui.screens
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marsphotos.network.MarsApi
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import java.io.IOException
+
+// 1️⃣ Định nghĩa sealed interface cho 3 trạng thái
+sealed interface MarsUiState {
+    data class Success(val photos: String) : MarsUiState
+    object Error : MarsUiState
+    object Loading : MarsUiState
+}
 
 class MarsViewModel : ViewModel() {
-    var marsUiState: String by mutableStateOf("")
+
+    // 2️⃣ Biến trạng thái UI — mặc định là Loading
+    var marsUiState: MarsUiState by mutableStateOf(MarsUiState.Loading)
         private set
 
     init {
-        getMarsPhotos() // gọi ngay khi ViewModel khởi tạo
+        getMarsPhotos()
     }
 
+    // 3️⃣ Gọi API và cập nhật UI state
     private fun getMarsPhotos() {
-        // chạy trong coroutine → không chặn luồng UI
         viewModelScope.launch {
-            val listResult = MarsApi.retrofitService.getPhotos()
-            marsUiState = listResult  // cập nhật state → UI tự render lại
+            marsUiState = try {
+                val listResult = MarsApi.retrofitService.getPhotos()
+                MarsUiState.Success(listResult)
+            } catch (e: IOException) {
+                MarsUiState.Error
+            }
         }
     }
 }

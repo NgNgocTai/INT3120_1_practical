@@ -1,5 +1,5 @@
 package com.example.superheroes
-import SuperheroesTheme
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,37 +7,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.superheroes.model.Hero
 import com.example.superheroes.model.HeroesRepository
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
+import SuperheroesTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,10 +38,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SuperheroesTheme {
-                    SuperheroApp()
-                }
+                SuperheroApp()
             }
         }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +50,7 @@ fun SuperheroesTopAppBar(modifier: Modifier = Modifier) {
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = stringResource(R.string.app_name), // tên app
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.displayLarge
             )
         },
@@ -65,12 +58,27 @@ fun SuperheroesTopAppBar(modifier: Modifier = Modifier) {
     )
 }
 
-
 @Composable
 fun SuperheroApp() {
-        Scaffold(
-            topBar = { SuperheroesTopAppBar() } // <-- top app bar chỉ có text
-        ) { innerPadding ->
+    var isTwoTeams by rememberSaveable { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = { SuperheroesTopAppBar() },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { isTwoTeams = !isTwoTeams }) {
+                Icon(
+                    imageVector = Icons.Default.Shuffle,
+                    contentDescription = stringResource(R.string.split_teams)
+                )
+            }
+        }
+    ) { innerPadding ->
+        if (isTwoTeams) {
+            SuperheroTwoTeamsLayout(
+                heroes = HeroesRepository.heroes,
+                contentPadding = innerPadding
+            )
+        } else {
             LazyColumn(contentPadding = innerPadding) {
                 items(HeroesRepository.heroes) { hero ->
                     SuperheroItem(
@@ -82,6 +90,92 @@ fun SuperheroApp() {
             }
         }
     }
+}
+
+@Composable
+fun SuperheroTwoTeamsLayout(
+    heroes: List<Hero>,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+
+    val team1 = heroes.filterIndexed { index, _ -> index % 2 == 0 }
+    val team2 = heroes.filterIndexed { index, _ -> index % 2 != 0 }
+
+    if (isLandscape) {
+        // Landscape: 2 cột
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(contentPadding)
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Team 1",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                LazyColumn {
+                    items(team1) { hero ->
+                        SuperheroItem(hero = hero, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Team 2",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                LazyColumn {
+                    items(team2) { hero ->
+                        SuperheroItem(hero = hero, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+        }
+    } else {
+        // Portrait: 2 hàng
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(contentPadding)
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Team 1",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                LazyColumn {
+                    items(team1) { hero ->
+                        SuperheroItem(hero = hero, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+            Column {
+                Text(
+                    text = "Team 2",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                LazyColumn {
+                    items(team2) { hero ->
+                        SuperheroItem(hero = hero, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 @Composable
 fun SuperheroItem(
     hero: Hero,
@@ -98,19 +192,15 @@ fun SuperheroItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .sizeIn(72.dp)
+                .sizeIn(minHeight = 72.dp)
                 .padding(16.dp)
         ) {
-            // Column chứa text, weight 1 để chiếm toàn bộ không gian còn lại
             SuperheroInfo(
                 heroName = hero.nameRes,
                 heroDes = hero.descriptionRes,
                 modifier = Modifier.weight(1f)
             )
-
             Spacer(Modifier.width(16.dp))
-
-            // Image hero
             SuperheroIcon(hero.imageRes)
         }
     }
@@ -144,7 +234,7 @@ fun SuperheroIcon(
         modifier = Modifier
             .size(72.dp)
             .clip(RoundedCornerShape(8.dp))
-            .then(modifier) // kết hợp modifier từ ngoài nếu có
+            .then(modifier)
     ) {
         Image(
             painter = painterResource(superheroIcon),
@@ -158,7 +248,7 @@ fun SuperheroIcon(
 @Preview(showBackground = true)
 @Composable
 fun SuperheroAppPreview() {
-    SuperheroesTheme(darkTheme = true) {
+    SuperheroesTheme(darkTheme = false) {
         SuperheroApp()
     }
 }

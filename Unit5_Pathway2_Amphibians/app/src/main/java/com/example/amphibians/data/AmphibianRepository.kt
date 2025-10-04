@@ -1,6 +1,6 @@
 package com.example.amphibians.data
 
-import com.example.amphibians.network.Amphibian
+import com.example.amphibians.model.Amphibian
 import com.example.amphibians.network.AmphibianApiService
 
 //Inteface định nghĩa các lấy dữ liệu, giúp dễ fake data

@@ -11,7 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.amphibians.AmphibianApplication
 import com.example.amphibians.data.AmphibianRepository
-import com.example.amphibians.network.Amphibian
+import com.example.amphibians.model.Amphibian
 import kotlinx.coroutines.launch
 import java.io.IOException
 

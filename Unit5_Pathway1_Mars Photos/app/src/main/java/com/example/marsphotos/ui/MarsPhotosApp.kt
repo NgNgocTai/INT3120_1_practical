@@ -1,3 +1,5 @@
+
+
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.marsphotos.ui
@@ -33,7 +35,7 @@ fun MarsPhotosApp() {
             val marsViewModel: MarsViewModel = viewModel()
             HomeScreen(
                 marsUiState = marsViewModel.marsUiState,
-                contentPadding = it,
+                contentPadding = it
             )
         }
     }

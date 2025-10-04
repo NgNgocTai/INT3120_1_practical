@@ -6,12 +6,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.marsphotos.network.MarsApi
+import com.example.marsphotos.network.MarsPhoto
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 // 1️⃣ Định nghĩa sealed interface cho 3 trạng thái
 sealed interface MarsUiState {
-    data class Success(val photos: String) : MarsUiState
+    data class Success(val photos: List<MarsPhoto>) : MarsUiState
     object Error : MarsUiState
     object Loading : MarsUiState
 }
@@ -32,7 +33,8 @@ class MarsViewModel : ViewModel() {
             marsUiState = try {
                 val listResult = MarsApi.retrofitService.getPhotos()
                 MarsUiState.Success(listResult)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
+                e.printStackTrace()
                 MarsUiState.Error
             }
         }

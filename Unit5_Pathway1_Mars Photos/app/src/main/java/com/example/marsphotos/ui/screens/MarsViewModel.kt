@@ -1,25 +1,28 @@
 package com.example.marsphotos.ui.screens
 
+import MarsPhotosRepository
+import NetworkMarsPhotosRepository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.marsphotos.network.MarsApi
+
 import com.example.marsphotos.network.MarsPhoto
 import kotlinx.coroutines.launch
-import java.io.IOException
 
-// 1️⃣ Định nghĩa sealed interface cho 3 trạng thái
+// 1️⃣ Trạng thái UI
 sealed interface MarsUiState {
     data class Success(val photos: List<MarsPhoto>) : MarsUiState
     object Error : MarsUiState
     object Loading : MarsUiState
 }
 
-class MarsViewModel : ViewModel() {
+class MarsViewModel(
+    private val marsPhotosRepository: MarsPhotosRepository = NetworkMarsPhotosRepository()
+) : ViewModel() {
 
-    // 2️⃣ Biến trạng thái UI — mặc định là Loading
+    // 2️⃣ Trạng thái UI — mặc định là Loading
     var marsUiState: MarsUiState by mutableStateOf(MarsUiState.Loading)
         private set
 
@@ -27,12 +30,11 @@ class MarsViewModel : ViewModel() {
         getMarsPhotos()
     }
 
-    // 3️⃣ Gọi API và cập nhật UI state
+    // 3️⃣ Lấy dữ liệu qua repository
     private fun getMarsPhotos() {
         viewModelScope.launch {
             marsUiState = try {
-                val listResult = MarsApi.retrofitService.getPhotos()
-                MarsUiState.Success(listResult)
+                MarsUiState.Success(marsPhotosRepository.getMarsPhotos())
             } catch (e: Exception) {
                 e.printStackTrace()
                 MarsUiState.Error

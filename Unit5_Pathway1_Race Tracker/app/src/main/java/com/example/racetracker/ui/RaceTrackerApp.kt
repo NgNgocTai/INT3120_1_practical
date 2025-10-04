@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.racetracker.R
 import com.example.racetracker.ui.theme.RaceTrackerTheme
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -48,20 +49,36 @@ fun RaceTrackerApp() {
      * Coroutines that implementation detail is stripped out.
      */
     val playerOne = remember {
-        RaceParticipant(name = "Player 1", progressIncrement = 1)
+        RaceParticipant(name = "Player 1", progressIncrement = 10)
     }
     val playerTwo = remember {
-        RaceParticipant(name = "Player 2", progressIncrement = 2)
+        RaceParticipant(name = "Player 2", progressIncrement = 20)
     }
     var raceInProgress by remember { mutableStateOf(false) }
+    var isRaceFinished by remember { mutableStateOf(false) }
+
 
     if (raceInProgress) {
         LaunchedEffect(playerOne, playerTwo) {
             coroutineScope {
-                launch { playerOne.run() }
-                launch { playerTwo.run() }
+                val scope = this
+                launch {
+                    playerOne.run { winner ->
+                        if (winner) {
+                            isRaceFinished = true
+                            scope.cancel()
+                        }
+                    }
+                }
+                launch {
+                    playerTwo.run { winner ->
+                        if (winner) {
+                            isRaceFinished = true
+                            scope.cancel()
+                        }
+                    }
+                }
             }
-            raceInProgress = false
         }
     }
 
@@ -69,7 +86,9 @@ fun RaceTrackerApp() {
         playerOne = playerOne,
         playerTwo = playerTwo,
         isRunning = raceInProgress,
+        isRaceFinished= isRaceFinished ,
         onRunStateChange = { raceInProgress = it },
+        onFinishedStateChange = { isRaceFinished = it },
         modifier = Modifier
             .statusBarsPadding()
             .fillMaxSize()
@@ -80,11 +99,23 @@ fun RaceTrackerApp() {
 }
 
 @Composable
+private fun Winner(
+    player: RaceParticipant
+){
+    Text(
+        text = "${player.name} is the winner",
+        style = MaterialTheme.typography.bodyLarge
+    )
+}
+
+@Composable
 private fun RaceTrackerScreen(
     playerOne: RaceParticipant,
     playerTwo: RaceParticipant,
     isRunning: Boolean,
+    isRaceFinished: Boolean,
     onRunStateChange: (Boolean) -> Unit,
+    onFinishedStateChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -132,14 +163,24 @@ private fun RaceTrackerScreen(
             Spacer(modifier = Modifier.size(dimensionResource(R.dimen.padding_large)))
             RaceControls(
                 isRunning = isRunning,
+                isRaceFinished = isRaceFinished,
                 onRunStateChange = onRunStateChange,
                 onReset = {
                     playerOne.reset()
                     playerTwo.reset()
                     onRunStateChange(false)
+                    onFinishedStateChange(false)
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
+            if (playerOne.isWinner) {
+                Winner(player = playerOne)
+            }
+
+            if (playerTwo.isWinner) {
+                Winner(player = playerTwo)
+            }
+
         }
     }
 }
@@ -194,6 +235,7 @@ private fun RaceControls(
     onReset: () -> Unit,
     modifier: Modifier = Modifier,
     isRunning: Boolean = true,
+    isRaceFinished: Boolean
 ) {
     Column(
         modifier = modifier.padding(top = dimensionResource(R.dimen.padding_medium)),
@@ -202,6 +244,7 @@ private fun RaceControls(
         Button(
             onClick = { onRunStateChange(!isRunning) },
             modifier = Modifier.fillMaxWidth(),
+            enabled = !isRaceFinished
         ) {
             Text(if (isRunning) stringResource(R.string.pause) else stringResource(R.string.start))
         }

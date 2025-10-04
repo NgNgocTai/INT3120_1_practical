@@ -11,7 +11,7 @@ class RaceParticipant(
     val name: String,
     val maxProgress: Int = 100,
     val progressDelayMillis: Long = 500L,
-    private val progressIncrement: Int = 1,
+    private val progressIncrement: Int = 10,
     private val initialProgress: Int = 0
 ) {
     init {
@@ -19,23 +19,26 @@ class RaceParticipant(
         require(progressIncrement > 0) { "progressIncrement=$progressIncrement; must be > 0" }
     }
 
+    var isWinner: Boolean by mutableStateOf(false)
+
     var currentProgress by mutableStateOf(initialProgress)
         private set
 
-    suspend fun run() {
-        try {
-            while (currentProgress < maxProgress) {
-                delay(progressDelayMillis)
-                currentProgress += progressIncrement
+    suspend fun run(onWin: (Boolean) -> Unit) {
+        while (currentProgress < maxProgress) {
+            delay(progressDelayMillis)
+            currentProgress += progressIncrement
+            if (currentProgress == maxProgress) {
+                isWinner = true
+                onWin(true)
+                break
             }
-        } catch (e: CancellationException) {
-            Log.e("RaceParticipant", "$name: ${e.message}")
-            throw e // Always re-throw CancellationException.
         }
     }
 
     fun reset() {
-        currentProgress = 0
+        currentProgress = 0;
+        isWinner = false
     }
 }
 

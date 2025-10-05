@@ -22,7 +22,7 @@ import com.example.inventory.data.Item
 /**
  * ViewModel to retrieve all items in the Room database.
  */
-class HomeViewModel : ViewModel() {
+class HomeViewModel() : ViewModel() {
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L
     }

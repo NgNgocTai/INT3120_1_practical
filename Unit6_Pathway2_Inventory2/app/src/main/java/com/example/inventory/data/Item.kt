@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -17,23 +16,17 @@
 
 package com.example.inventory.data
 
-import android.content.Context
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 /**
- * App container for Dependency injection.
+ * Entity data class represents a single row in the database.
  */
-interface AppContainer {
-    val itemsRepository: ItemsRepository
-}
-
-/**
- * [AppContainer] implementation that provides instance of [OfflineItemsRepository]
- */
-class AppDataContainer(private val context: Context) : AppContainer {
-    /**
-     * Implementation for [ItemsRepository]
-     */
-    override val itemsRepository: ItemsRepository by lazy {
-        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())
-    }
-}
+@Entity(tableName = "items")
+data class Item(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val name: String,
+    val price: Double,
+    val quantity: Int
+)

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -15,25 +14,19 @@
  * limitations under the License.
  */
 
-package com.example.inventory.data
-
-import android.content.Context
+package com.example.inventory.ui.navigation
 
 /**
- * App container for Dependency injection.
+ * Interface to describe the navigation destinations for the app
  */
-interface AppContainer {
-    val itemsRepository: ItemsRepository
-}
-
-/**
- * [AppContainer] implementation that provides instance of [OfflineItemsRepository]
- */
-class AppDataContainer(private val context: Context) : AppContainer {
+interface NavigationDestination {
     /**
-     * Implementation for [ItemsRepository]
+     * Unique name to define the path for a composable
      */
-    override val itemsRepository: ItemsRepository by lazy {
-        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())
-    }
+    val route: String
+
+    /**
+     * String resource id to that contains title to be displayed for the screen.
+     */
+    val titleRes: Int
 }

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -15,25 +14,21 @@
  * limitations under the License.
  */
 
-package com.example.inventory.data
+package com.example.inventory
 
-import android.content.Context
+import android.app.Application
+import com.example.inventory.data.AppContainer
+import com.example.inventory.data.AppDataContainer
 
-/**
- * App container for Dependency injection.
- */
-interface AppContainer {
-    val itemsRepository: ItemsRepository
-}
+class InventoryApplication : Application() {
 
-/**
- * [AppContainer] implementation that provides instance of [OfflineItemsRepository]
- */
-class AppDataContainer(private val context: Context) : AppContainer {
     /**
-     * Implementation for [ItemsRepository]
+     * AppContainer instance used by the rest of classes to obtain dependencies
      */
-    override val itemsRepository: ItemsRepository by lazy {
-        OfflineItemsRepository(InventoryDatabase.getDatabase(context).itemDao())
+    lateinit var container: AppContainer
+
+    override fun onCreate() {
+        super.onCreate()
+        container = AppDataContainer(this)
     }
 }

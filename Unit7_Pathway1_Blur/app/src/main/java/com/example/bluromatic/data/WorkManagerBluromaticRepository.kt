@@ -1,74 +1,66 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.bluromatic.data
 
 import android.content.Context
 import android.net.Uri
 import androidx.work.Data
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
+import com.example.bluromatic.getImageUri
+import com.example.bluromatic.workers.BlurWorker
+import com.example.bluromatic.workers.CleanupWorker
+import com.example.bluromatic.workers.SaveImageToFileWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import com.example.bluromatic.workers.BlurWorker
-import androidx.work.OneTimeWorkRequestBuilder
-import com.example.bluromatic.getImageUri
 
 class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
+
+    // URI của hình ảnh cần xử lý
     private var imageUri: Uri = context.getImageUri()
+
+    // Quản lý các tác vụ nền
     private val workManager = WorkManager.getInstance(context)
 
+    // Lưu thông tin về tiến trình công việc
     override val outputWorkInfo: Flow<WorkInfo?> = MutableStateFlow(null)
 
     /**
-     * Create the WorkRequests to apply the blur and save the resulting image
-     * @param blurLevel The amount to blur the image
+     * Tạo chuỗi công việc để:
+     * 1. Dọn file tạm
+     * 2. Làm mờ ảnh
+     * 3. Lưu ảnh mờ ra file vĩnh viễn
      */
     override fun applyBlur(blurLevel: Int) {
-        // Tạo builder cho Worker
-        val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
-        // Thiết lập dữ liệu đầu vào (Data object)
-                blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
-        // Xây dựng WorkRequest
-                val blurRequest = blurBuilder.build()
-        // Gửi WorkRequest cho WorkManager để chạy
-                workManager.enqueue(blurRequest)
+        // Bước 1: Dọn file tạm
+        var continuation = workManager.beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
 
-//        val blurRequest = OneTimeWorkRequestBuilder<BlurWorker>()
-//            .setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
-//            .build()
-//
-//        workManager.enqueue(blurRequest)
+        // Bước 2: Làm mờ ảnh
+        val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
+        blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
+        continuation = continuation.then(blurBuilder.build())
+
+        // Bước 3: Lưu ảnh mờ ra bộ nhớ
+        val save = OneTimeWorkRequestBuilder<SaveImageToFileWorker>().build()
+        continuation = continuation.then(save)
+
+        // Bắt đầu chạy chuỗi công việc
+        continuation.enqueue()
     }
 
-    /**
-     * Cancel any ongoing WorkRequests
-     * */
+    /** Hủy các công việc đang chạy (chưa triển khai) */
     override fun cancelWork() {}
 
     /**
-     * Creates the input data bundle which includes the blur level to
-     * update the amount of blur to be applied and the Uri to operate on
-     * @return Data which contains the Image Uri as a String and blur level as an Integer
+     * Tạo dữ liệu đầu vào cho Worker:
+     * - Gồm URI ảnh và mức độ làm mờ
      */
     private fun createInputDataForWorkRequest(blurLevel: Int, imageUri: Uri): Data {
         val builder = Data.Builder()
-        builder.putString(KEY_IMAGE_URI, imageUri.toString()).putInt(KEY_BLUR_LEVEL, blurLevel)
+        builder.putString(KEY_IMAGE_URI, imageUri.toString())
+            .putInt(KEY_BLUR_LEVEL, blurLevel)
         return builder.build()
     }
 }

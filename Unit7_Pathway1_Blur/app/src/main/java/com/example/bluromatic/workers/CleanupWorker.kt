@@ -1,3 +1,5 @@
+
+
 package com.example.bluromatic.workers
 
 import android.content.Context
@@ -12,17 +14,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.File
 
-/**
- * Cleans up temporary files generated during blurring process
- */
 private const val TAG = "CleanupWorker"
 
 class CleanupWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
 
     override suspend fun doWork(): Result {
-        /** Makes a notification when the work starts and slows down the work so that it's easier
-         * to see each WorkRequest start, even on emulated devices
-         */
         makeStatusNotification(
             applicationContext.resources.getString(R.string.cleaning_up_files),
             applicationContext

@@ -3,82 +3,74 @@ package com.example.bluromatic.data
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.asFlow
-import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequest
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
+import androidx.work.*
 import com.example.bluromatic.IMAGE_MANIPULATION_WORK_NAME
 import com.example.bluromatic.KEY_BLUR_LEVEL
 import com.example.bluromatic.KEY_IMAGE_URI
+import com.example.bluromatic.TAG_OUTPUT
 import com.example.bluromatic.getImageUri
 import com.example.bluromatic.workers.BlurWorker
 import com.example.bluromatic.workers.CleanupWorker
 import com.example.bluromatic.workers.SaveImageToFileWorker
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import com.example.bluromatic.TAG_OUTPUT
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 class WorkManagerBluromaticRepository(context: Context) : BluromaticRepository {
 
-    // URI của hình ảnh cần xử lý
+    // URI ảnh gốc
     private var imageUri: Uri = context.getImageUri()
-
-    // Quản lý các tác vụ nền
     private val workManager = WorkManager.getInstance(context)
 
-    // Lưu thông tin về tiến trình công việc
-    override val outputWorkInfo: Flow<WorkInfo> =
+    // ID của worker lưu ảnh cuối cùng
+    private var outputWorkId: UUID? = null
+
+    // Theo dõi tiến trình worker theo tag
+    override val outputWorkInfo: Flow<WorkInfo?> =
         workManager.getWorkInfosByTagLiveData(TAG_OUTPUT)
             .asFlow()
-            .mapNotNull { workInfoList ->
-                if (workInfoList.isNotEmpty()) workInfoList.first() else null
-            }
+            .map { list -> list.firstOrNull() }
 
-    /**
-     * Tạo chuỗi công việc để:
-     * 1. Dọn file tạm
-     * 2. Làm mờ ảnh
-     * 3. Lưu ảnh mờ ra file vĩnh viễn
-     */
+
     override fun applyBlur(blurLevel: Int) {
         // Bước 1: Dọn file tạm
-//        var continuation = workManager.beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
-            var continuation = workManager.beginUniqueWork(
-                IMAGE_MANIPULATION_WORK_NAME,
-                ExistingWorkPolicy.REPLACE,
-                OneTimeWorkRequest.from(CleanupWorker::class.java)
-            )
+        var continuation = workManager.beginWith(OneTimeWorkRequest.from(CleanupWorker::class.java))
+
+        // 🟢 Thêm quy tắc ràng buộc pin không yếu
+        val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(true)
+            .build()
+
         // Bước 2: Làm mờ ảnh
         val blurBuilder = OneTimeWorkRequestBuilder<BlurWorker>()
         blurBuilder.setInputData(createInputDataForWorkRequest(blurLevel, imageUri))
+
+        // 🟢 Gắn constraint vào blur worker
+        blurBuilder.setConstraints(constraints)
+
         continuation = continuation.then(blurBuilder.build())
 
-        // Bước 3: Lưu ảnh mờ ra bộ nhớ
+        // Bước 3: Lưu ảnh
         val save = OneTimeWorkRequestBuilder<SaveImageToFileWorker>()
             .addTag(TAG_OUTPUT)
             .build()
         continuation = continuation.then(save)
 
-        // Bắt đầu chạy chuỗi công việc
+        // Bắt đầu chuỗi công việc
         continuation.enqueue()
+
     }
 
+    // Hủy toàn bộ công việc đang chạy
+    override fun cancelWork() {
+        workManager.cancelUniqueWork(IMAGE_MANIPULATION_WORK_NAME)
+    }
 
-
-    /** Hủy các công việc đang chạy (chưa triển khai) */
-    override fun cancelWork() {}
-
-    /**
-     * Tạo dữ liệu đầu vào cho Worker:
-     * - Gồm URI ảnh và mức độ làm mờ
-     */
+    // Tạo input data chứa mức độ làm mờ và URI ảnh
     private fun createInputDataForWorkRequest(blurLevel: Int, imageUri: Uri): Data {
-        val builder = Data.Builder()
-        builder.putString(KEY_IMAGE_URI, imageUri.toString())
+        return Data.Builder()
+            .putString(KEY_IMAGE_URI, imageUri.toString())
             .putInt(KEY_BLUR_LEVEL, blurLevel)
-        return builder.build()
+            .build()
     }
 }

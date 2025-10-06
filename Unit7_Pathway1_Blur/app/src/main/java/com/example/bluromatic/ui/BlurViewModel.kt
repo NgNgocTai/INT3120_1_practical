@@ -16,68 +16,57 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-/**
- * ViewModel điều khiển WorkManager và cập nhật trạng thái giao diện.
- */
-class BlurViewModel(
-    private val bluromaticRepository: BluromaticRepository
-) : ViewModel() {
+// ViewModel xử lý logic làm mờ ảnh và trạng thái UI
+class BlurViewModel(private val bluromaticRepository: BluromaticRepository) : ViewModel() {
 
+    // Danh sách các mức độ làm mờ
     internal val blurAmount = BlurAmountData.blurAmount
 
-    /**
-     * Dòng dữ liệu trạng thái giao diện (UI State)
-     * Được xây dựng từ trạng thái của công việc (WorkInfo) trong repository.
-     */
+    // Quan sát trạng thái xử lý từ WorkManager
     val blurUiState: StateFlow<BlurUiState> = bluromaticRepository.outputWorkInfo
         .map { info ->
-            val outputImageUri = info!!.outputData.getString(KEY_IMAGE_URI)
+            val outputImageUri = info?.outputData?.getString(KEY_IMAGE_URI)
             when {
-                info.state.isFinished && !outputImageUri.isNullOrEmpty() -> {
-                    // Khi công việc hoàn tất và có ảnh đầu ra
+                // Hoàn thành và có ảnh đầu ra
+                info?.state?.isFinished == true && !outputImageUri.isNullOrEmpty() -> {
                     BlurUiState.Complete(outputUri = outputImageUri)
                 }
-                info.state == WorkInfo.State.CANCELLED -> {
+                // Nếu bị hủy
+                info?.state == WorkInfo.State.CANCELLED -> {
                     BlurUiState.Default
                 }
-                info.state == WorkInfo.State.RUNNING -> {
-                    BlurUiState.Loading
-                }
-                else -> {
-                    BlurUiState.Default
-                }
+                // Đang chạy
+                else -> BlurUiState.Loading
             }
-        }
-        // Biến Flow "nguội" thành StateFlow "nóng" có thể quan sát được trong UI
-        .stateIn(
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = BlurUiState.Default
         )
 
-    /** Gọi repository để bắt đầu làm mờ ảnh */
+    // Gọi repository để bắt đầu làm mờ ảnh
     fun applyBlur(blurLevel: Int) {
         bluromaticRepository.applyBlur(blurLevel)
     }
 
-    /** Gọi repository để hủy công việc */
+    // Hủy tác vụ WorkManager đang chạy
     fun cancelWork() {
         bluromaticRepository.cancelWork()
     }
 
+    // Tạo ViewModel thông qua Factory, inject repository từ Application
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val bluromaticRepository =
-                    (this[APPLICATION_KEY] as BluromaticApplication)
-                        .container.bluromaticRepository
-                BlurViewModel(bluromaticRepository)
+                    (this[APPLICATION_KEY] as BluromaticApplication).container.bluromaticRepository
+                BlurViewModel(bluromaticRepository = bluromaticRepository)
             }
         }
     }
 }
 
-/** Các trạng thái có thể có của giao diện */
+// Trạng thái UI: mặc định, đang tải, hoặc hoàn thành
 sealed interface BlurUiState {
     object Default : BlurUiState
     object Loading : BlurUiState

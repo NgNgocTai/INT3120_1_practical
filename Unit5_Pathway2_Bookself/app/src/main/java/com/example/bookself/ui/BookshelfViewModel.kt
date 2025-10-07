@@ -22,14 +22,14 @@ class BookshelfViewModel(private val bookshelfRepository: BookshelfRepository) :
         private set
 
     init {
-        getBooksPhotos()
+        getBooksPhotos("jazz+history")
     }
 
-    fun getBooksPhotos() {
+    fun getBooksPhotos(query: String) {
         viewModelScope.launch {
             bookshelfUiState = BookshelfUiState.Loading
             bookshelfUiState = try {
-                val photos = bookshelfRepository.getBooksPhotos("jazz+history")
+                val photos = bookshelfRepository.getBooksPhotos(query)
                 BookshelfUiState.Success(photos)
             } catch (e: IOException) {
                 BookshelfUiState.Error

@@ -65,7 +65,7 @@ fun BookshelfApp(modifier: Modifier = Modifier) {
 
             HomeScreen(
                 bookshelfUiState = bookshelfViewModel.bookshelfUiState,
-                retryAction = { bookshelfViewModel.getBooksPhotos() }
+                retryAction = { bookshelfViewModel.getBooksPhotos("jazz+history") }
             )
         }
     }

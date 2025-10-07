@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import com.example.marsphotos.ui.theme.MarsPhotosTheme
 @Composable
 fun HomeScreen(
     marsUiState: MarsUiState,
+    retryAction: () -> Unit, //Thêm tham số retry
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
@@ -30,7 +32,8 @@ fun HomeScreen(
             photos = marsUiState.photos,
             modifier = modifier.fillMaxWidth()
         )
-        is MarsUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
+        // TRUYỀN `retryAction` xuống cho ErrorScreen
+        is MarsUiState.Error -> ErrorScreen(retryAction = retryAction, modifier = modifier.fillMaxSize())
     }
 }
 
@@ -50,7 +53,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
  * Error state UI
  */
 @Composable
-fun ErrorScreen(modifier: Modifier = Modifier) {
+fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) { // <-- THÊM tham số này
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -64,6 +67,10 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
             text = stringResource(R.string.loading_failed),
             modifier = Modifier.padding(16.dp)
         )
+        // Thêm nút retry
+        Button(onClick = retryAction) {
+            Text(stringResource(R.string.retry))
+        }
     }
 }
 
@@ -102,13 +109,6 @@ fun LoadingScreenPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ErrorScreenPreview() {
-    MarsPhotosTheme {
-        ErrorScreen()
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

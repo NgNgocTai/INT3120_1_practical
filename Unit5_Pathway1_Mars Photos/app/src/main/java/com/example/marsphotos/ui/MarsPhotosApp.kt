@@ -32,15 +32,18 @@ fun MarsPhotosApp() {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
-            val marsViewModel: MarsViewModel = viewModel()
+            // *** THAY ĐỔI DÒNG NÀY ***
+            // Cung cấp Factory để tạo ViewModel
+            val marsViewModel: MarsViewModel = viewModel(factory = MarsViewModel.Factory)
             HomeScreen(
                 marsUiState = marsViewModel.marsUiState,
+                // Truyền hành động từ ViewModel vào HomeScreen
+                retryAction = marsViewModel::getMarsPhotos,
                 contentPadding = it
             )
         }
     }
 }
-
 @Composable
 fun MarsTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
     CenterAlignedTopAppBar(

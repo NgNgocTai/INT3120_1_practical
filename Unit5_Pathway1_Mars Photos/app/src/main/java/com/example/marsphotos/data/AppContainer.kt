@@ -18,17 +18,23 @@ class DefaultAppContainer : AppContainer {
         "https://android-kotlin-fun-mars-server.appspot.com"
 
     /**
-     * Use the Retrofit builder to build a retrofit object using a kotlinx.serialization converter
+     * Dùng Retrofit builder để tạo đối tượng Retrofit.
      */
     private val retrofit = Retrofit.Builder()
         .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
         .baseUrl(baseUrl)
         .build()
-
+    /**
+     * Đối tượng Retrofit service được tạo bởi Retrofit.
+     * Dùng lazy để chỉ được khởi tạo khi được gọi lần đầu.
+     */
     private val retrofitService: MarsApiService by lazy {
         retrofit.create(MarsApiService::class.java)
     }
 
+    /**
+     * Cung cấp repository cho toàn ứng dụng.
+     */
     override val marsPhotosRepository: MarsPhotosRepository by lazy {
         NetworkMarsPhotosRepository(retrofitService)
     }

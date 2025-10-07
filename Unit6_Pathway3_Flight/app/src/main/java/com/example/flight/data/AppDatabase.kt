@@ -17,7 +17,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AppDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, AppDatabase::class.java, "flight_search.db")
-                    .createFromAsset("database/flight_search.db") // Sửa lại đường dẫn nếu cần
+                    .createFromAsset("flight_search.db")
                     .build()
                     .also { Instance = it }
             }

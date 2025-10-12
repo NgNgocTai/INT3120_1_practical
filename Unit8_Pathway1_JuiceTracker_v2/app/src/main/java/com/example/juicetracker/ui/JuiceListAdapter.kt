@@ -1,63 +1,139 @@
 package com.example.juicetracker.ui
 
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.juicetracker.R
 import com.example.juicetracker.data.Juice
 import com.example.juicetracker.data.JuiceColor
-import com.example.juicetracker.databinding.ListItemBinding
 
-class JuiceListAdapter(
-    private var onEdit: (Juice) -> Unit,
-    private var onDelete: (Juice) -> Unit
-) : ListAdapter<Juice, JuiceListAdapter.JuiceListViewHolder>(JuiceDiffCallback()) {
+/**
+ * Composable list item representing a Juice entry.
+ */
+@Composable
+fun ListItem(
+    input: Juice,
+    onDelete: (Juice) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Icon for juice
+        JuiceIcon(color = input.color)
 
-    class JuiceListViewHolder(
-        private val binding: ListItemBinding,
-        private val onEdit: (Juice) -> Unit,
-        private val onDelete: (Juice) -> Unit
-    ) : RecyclerView.ViewHolder(binding.root) {
-        private val nameView = binding.name
-        private val description = binding.description
-        private val drinkImage = binding.drinkColorOverlay
-        private val ratingBar = binding.ratingBar
+        // Details (name, description, rating)
+        JuiceDetails(juice = input, modifier = Modifier.weight(1f))
 
-        fun bind(juice: Juice) {
-            nameView.text = juice.name
-            description.text = juice.description
-            drinkImage.setColorFilter(
-                JuiceColor.valueOf(juice.color).color,
-                android.graphics.PorterDuff.Mode.SRC_IN
-            )
-            ratingBar.rating = juice.rating.toFloat()
-            binding.deleteButton.setOnClickListener {
-                onDelete(juice)
-            }
-            binding.root.setOnClickListener {
-                onEdit(juice)
-            }
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = JuiceListViewHolder(
-        ListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-        onEdit,
-        onDelete
-    )
-
-    override fun onBindViewHolder(holder: JuiceListViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        // Delete button
+        DeleteButton(onDelete = { onDelete(input) })
     }
 }
 
-class JuiceDiffCallback : DiffUtil.ItemCallback<Juice>() {
-    override fun areItemsTheSame(oldItem: Juice, newItem: Juice): Boolean {
-        return oldItem.id == newItem.id
-    }
+@Composable
+fun JuiceIcon(color: String, modifier: Modifier = Modifier) {
+    val colorLabelMap = JuiceColor.values().associateBy { stringResource(it.label) }
+    val selectedColor = colorLabelMap[color]?.let { Color(it.color) }
+    val juiceIconContentDescription = stringResource(R.string.juice_color, color)
 
-    override fun areContentsTheSame(oldItem: Juice, newItem: Juice): Boolean {
-        return oldItem == newItem
+    Box(
+        modifier = modifier
+            .size(64.dp)
+            .semantics {
+                contentDescription = juiceIconContentDescription
+            }
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_juice_color),
+            contentDescription = null,
+            tint = selectedColor ?: Color.Red,
+            modifier = Modifier.align(Alignment.Center)
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_juice_clear),
+            contentDescription = null
+        )
     }
+}
+
+@Preview
+@Composable
+fun PreviewJuiceIcon() {
+    JuiceIcon("Yellow")
+}
+
+@Composable
+fun JuiceDetails(juice: Juice, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.Top) {
+        Text(
+            text = juice.name,
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+        )
+        Text(juice.description)
+        RatingDisplay(rating = juice.rating, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+@Preview
+@Composable
+fun PreviewJuiceDetails() {
+    JuiceDetails(Juice(1, "Sweet Beet", "Apple, carrot, beet, and lemon", "Red", 4))
+}
+
+@Composable
+fun RatingDisplay(rating: Int, modifier: Modifier = Modifier) {
+    val displayDescription = pluralStringResource(R.plurals.number_of_stars, count = rating)
+    Row(
+        // Content description is added here to support accessibility
+        modifier.semantics {
+            contentDescription = displayDescription
+        }
+    ) {
+        repeat(rating) {
+            // Star [contentDescription] is null as the image is for illustrative purpose
+            Image(
+                modifier = Modifier.size(32.dp),
+                painter = painterResource(R.drawable.star),
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Composable
+fun DeleteButton(onDelete: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = { onDelete() },
+        modifier = modifier
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_delete),
+            contentDescription = stringResource(R.string.delete)
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDeleteIcon() {
+    DeleteButton({})
 }

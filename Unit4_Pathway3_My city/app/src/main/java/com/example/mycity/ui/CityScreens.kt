@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,7 +17,7 @@ import com.example.mycity.data.Category
 import com.example.mycity.data.Recommendation
 
 /**
- * Màn hình hiển thị danh sách các danh mục.
+ * Màn hình danh sách các danh mục
  */
 @Composable
 fun CategoryListScreen(
@@ -23,7 +25,11 @@ fun CategoryListScreen(
     onItemClick: (Category) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier, contentPadding = PaddingValues(8.dp)) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         items(categories) { category ->
             ListItemCard(
                 text = category.name,
@@ -34,7 +40,7 @@ fun CategoryListScreen(
 }
 
 /**
- * Màn hình hiển thị danh sách các địa điểm trong một danh mục đã chọn.
+ * Màn hình danh sách các địa điểm, đã thêm padding.
  */
 @Composable
 fun RecommendationsListScreen(
@@ -42,7 +48,11 @@ fun RecommendationsListScreen(
     onItemClick: (Recommendation) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier, contentPadding = PaddingValues(8.dp)) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         items(recommendations) { recommendation ->
             ListItemCard(
                 text = recommendation.title,
@@ -53,7 +63,7 @@ fun RecommendationsListScreen(
 }
 
 /**
- * Một Card có thể tái sử dụng để hiển thị một mục trong danh sách.
+ * Card chung cho các mục trong danh sách, không đổi.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,11 +73,9 @@ fun ListItemCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onClick = onItemClick,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Text(
             text = text,
@@ -80,7 +88,7 @@ fun ListItemCard(
 }
 
 /**
- * Màn hình hiển thị thông tin chi tiết của một địa điểm.
+ * Màn hình chi tiết, đã cải tiến để có thể cuộn nếu nội dung dài.
  */
 @Composable
 fun RecommendationDetailScreen(
@@ -91,6 +99,8 @@ fun RecommendationDetailScreen(
         modifier = modifier
             .padding(16.dp)
             .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Image(
             painter = painterResource(id = recommendation.imageResId),
@@ -100,11 +110,8 @@ fun RecommendationDetailScreen(
                 .height(250.dp),
             contentScale = ContentScale.Crop
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = recommendation.title, style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = recommendation.title, style = MaterialTheme.typography.headlineLarge)
         Text(text = recommendation.description, style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(16.dp))
         Text(text = "Địa chỉ: ${recommendation.address}", style = MaterialTheme.typography.bodyMedium)
     }
 }

@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.juicetracker.ui.bottomsheet
 
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +29,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.juicetracker.R
 import com.example.juicetracker.data.Juice
+import com.example.juicetracker.data.JuiceColor
 import com.example.juicetracker.ui.JuiceTrackerViewModel
 import java.util.Locale
 
@@ -100,16 +86,32 @@ fun SheetForm(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.padding(horizontal = 16.dp)) {
+        // Nhập tên nước ép
         TextInputRow(
             inputLabel = stringResource(R.string.juice_name),
             fieldValue = juice.name,
             onValueChange = { name -> onUpdateJuice(juice.copy(name = name)) }
         )
+
+        // Nhập mô tả
         TextInputRow(
             inputLabel = stringResource(R.string.juice_description),
             fieldValue = juice.description,
             onValueChange = { description -> onUpdateJuice(juice.copy(description = description)) }
         )
+
+        // Spinner chọn màu
+        ColorSpinnerRow(
+            colorSpinnerPosition = findColorIndex(juice.color),
+            onColorChange = { colorIndex ->
+                onUpdateJuice(juice.copy(color = JuiceColor.values()[colorIndex].name))
+            }
+        )
+        RatingInputRow(
+            rating = juice.rating,
+            onRatingChange = { rating -> onUpdateJuice(juice.copy(rating = rating)) }
+        )
+        // Các nút hành động
         ButtonRow(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             onCancel = onCancel,
@@ -127,20 +129,13 @@ fun ButtonRow(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .padding(bottom = 16.dp),
+        modifier = modifier.padding(bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        OutlinedButton(
-            onClick = onCancel,
-            border = null
-        ) {
+        OutlinedButton(onClick = onCancel, border = null) {
             Text(stringResource(android.R.string.cancel).uppercase(Locale.getDefault()))
         }
-        Button(
-            onClick = onSubmit,
-            enabled = submitButtonEnabled
-        ) {
+        Button(onClick = onSubmit, enabled = submitButtonEnabled) {
             Text(stringResource(R.string.save).uppercase(Locale.getDefault()))
         }
     }
@@ -190,4 +185,10 @@ fun InputRow(
             content()
         }
     }
+}
+
+// Tìm vị trí của màu trong enum JuiceColor
+private fun findColorIndex(color: String): Int {
+    val juiceColor = JuiceColor.valueOf(color)
+    return JuiceColor.values().indexOf(juiceColor)
 }

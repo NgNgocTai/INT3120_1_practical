@@ -19,17 +19,40 @@ package com.example.waterme.data
 import android.content.Context
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.waterme.model.Plant
 import com.example.waterme.worker.WaterReminderWorker
 import java.util.concurrent.TimeUnit
 
 class WorkManagerWaterRepository(context: Context) : WaterRepository {
+    // Lấy instance của WorkManager
     private val workManager = WorkManager.getInstance(context)
+    override val plants: List<Plant> = DataSource.plants
+    override fun scheduleReminder(
+        duration: Long,
+        unit: TimeUnit,
+        plantName: String
+    ) {
 
-    override val plants: List<Plant>
-        get() = DataSource.plants
+        //Tạo đối tượng Data để truyền dữ liệu cho Worker
+        val data = Data.Builder()
+            .putString(WaterReminderWorker.nameKey, plantName)
+            .build()
 
-    override fun scheduleReminder(duration: Long, unit: TimeUnit, plantName: String) {}
+        // Tạo Yêu cầu Công việc (WorkRequest)
+        val reminderRequest = OneTimeWorkRequest.Builder(WaterReminderWorker::class.java)
+            .setInitialDelay(duration, unit)
+            .setInputData(data)
+            .build()
+
+        // Gửi Yêu cầu vào Hàng đợi của WorkManager
+        val uniqueWorkName = "$plantName$duration"
+
+        workManager.enqueueUniqueWork(
+            uniqueWorkName,
+            ExistingWorkPolicy.REPLACE,
+            reminderRequest
+        )
+    }
 }

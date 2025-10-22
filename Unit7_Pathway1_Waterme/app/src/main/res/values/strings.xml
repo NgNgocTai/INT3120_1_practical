@@ -44,4 +44,7 @@
     <string name="indoor_vine">Indoor vine</string>
     <string name="ornamental_fig">Ornamental fig</string>
     <string name="delicious_multiple_fruit">Delicious multiple fruit</string>
+    <string name="one_minute">1 minute</string>
+    <string name="two_minutes">2 minutes</string>
+    <string name="three_minutes">3 minutes</string>
 </resources>

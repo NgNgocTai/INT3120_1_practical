@@ -151,11 +151,17 @@ fun ReminderDialogContent(
     onScheduleReminder: (Reminder) -> Unit,
     modifier: Modifier = Modifier
 ) {
+//    val reminders = listOf(
+//        Reminder(R.string.five_seconds, FIVE_SECONDS, TimeUnit.SECONDS, plantName),
+//        Reminder(R.string.one_day, ONE_DAY, TimeUnit.DAYS, plantName),
+//        Reminder(R.string.one_week, SEVEN_DAYS, TimeUnit.DAYS, plantName),
+//        Reminder(R.string.one_month, THIRTY_DAYS, TimeUnit.DAYS, plantName)
+//    )
     val reminders = listOf(
-        Reminder(R.string.five_seconds, FIVE_SECONDS, TimeUnit.SECONDS, plantName),
-        Reminder(R.string.one_day, ONE_DAY, TimeUnit.DAYS, plantName),
-        Reminder(R.string.one_week, SEVEN_DAYS, TimeUnit.DAYS, plantName),
-        Reminder(R.string.one_month, THIRTY_DAYS, TimeUnit.DAYS, plantName)
+        Reminder(R.string.five_seconds, 5L, TimeUnit.SECONDS, plantName),
+        Reminder(R.string.one_minute, 1L, TimeUnit.MINUTES, plantName),
+        Reminder(R.string.two_minutes, 2L, TimeUnit.MINUTES, plantName),
+        Reminder(R.string.three_minutes, 3L, TimeUnit.MINUTES, plantName)
     )
 
     AlertDialog(
